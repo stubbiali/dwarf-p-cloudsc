@@ -283,9 +283,9 @@ def cloudsc(
             lneg_ql += ql
             qadj = ql / dt
             out_tnd_loc_qv[0, 0, 0] += qadj
-            if __INLINED(PHASEQL == 1):
+            if PHASEQL == 1:
                 out_tnd_loc_t[0, 0, 0] -= RALVDCP * qadj
-            elif __INLINED(PHASEQL == 2):
+            elif PHASEQL == 2:
                 out_tnd_loc_t[0, 0, 0] -= RALSDCP * qadj
             qv += ql
             ql = 0.0
@@ -295,9 +295,9 @@ def cloudsc(
             lneg_qi += qi
             qadj = qi / dt
             out_tnd_loc_qv[0, 0, 0] += qadj
-            if __INLINED(PHASEQI == 1):
+            if PHASEQI == 1:
                 out_tnd_loc_t[0, 0, 0] -= RALVDCP * qadj
-            elif __INLINED(PHASEQI == 2):
+            elif PHASEQI == 2:
                 out_tnd_loc_t[0, 0, 0] -= RALSDCP * qadj
             qv += qi
             qi = 0.0
@@ -307,9 +307,9 @@ def cloudsc(
             lneg_qr += qr
             qadj = qr / dt
             out_tnd_loc_qv[0, 0, 0] += qadj
-            if __INLINED(PHASEQR == 1):
+            if PHASEQR == 1:
                 out_tnd_loc_t[0, 0, 0] -= RALVDCP * qadj
-            elif __INLINED(PHASEQR == 2):
+            elif PHASEQR == 2:
                 out_tnd_loc_t[0, 0, 0] -= RALSDCP * qadj
             qv += qr
             qr = 0.0
@@ -319,9 +319,9 @@ def cloudsc(
             lneg_qs += qs
             qadj = qs / dt
             out_tnd_loc_qv[0, 0, 0] += qadj
-            if __INLINED(PHASEQS == 1):
+            if PHASEQS == 1:
                 out_tnd_loc_t[0, 0, 0] -= RALVDCP * qadj
-            elif __INLINED(PHASEQS == 2):
+            elif PHASEQS == 2:
                 out_tnd_loc_t[0, 0, 0] -= RALSDCP * qadj
             qv += qs
             qs = 0.0
@@ -630,27 +630,27 @@ def cloudsc(
                 mf = max(0.0, (in_mfu + in_mfd) * dtgdp)
                 acust = mf * anew[0, 0, -1]
 
-                if __INLINED(not FALLQL and PHASEQL > 0):
+                if not FALLQL and PHASEQL > 0:
                     lcust_ql = mf * qln[0, 0, -1]
                     # record total flux for enthalpy budget
                     convsrce_ql += lcust_ql
 
-                if __INLINED(not FALLQI and PHASEQI > 0):
+                if not FALLQI and PHASEQI > 0:
                     lcust_qi = mf * qin[0, 0, -1]
                     # record total flux for enthalpy budget
                     convsrce_qi += lcust_qi
 
-                if __INLINED(not FALLQR and PHASEQR > 0):
+                if not FALLQR and PHASEQR > 0:
                     lcust_qr = mf * qrn[0, 0, -1]
                     # record total flux for enthalpy budget
                     convsrce_qr += lcust_qr
 
-                if __INLINED(not FALLQS and PHASEQS > 0):
+                if not FALLQS and PHASEQS > 0:
                     lcust_qs = mf * qsn[0, 0, -1]
                     # record total flux for enthalpy budget
                     convsrce_qs += lcust_qs
 
-                if __INLINED(not FALLQV and PHASEQV > 0):
+                if not FALLQV and PHASEQV > 0:
                     lcust_qv = mf * qvn[0, 0, -1]
                     # record total flux for enthalpy budget
                     convsrce_qv += lcust_qv
@@ -660,7 +660,7 @@ def cloudsc(
                 dtforc = dtdp[0, 0, 0] * (in_ap[0, 0, 0] - in_ap[0, 0, -1])
                 dqs = anew[0, 0, -1] * dtforc * dqsmixdt
 
-                if __INLINED(not FALLQL and PHASEQL > 0):
+                if not FALLQL and PHASEQL > 0:
                     lfinal = max(0.0, lcust_ql - dqs)
                     evap = min(lcust_ql - lfinal, evaplimmix)
                     lfinal = lcust_ql - evap
@@ -669,7 +669,7 @@ def cloudsc(
                     solqa_qv_ql += evap
                     solqa_ql_qv -= evap
 
-                if __INLINED(not FALLQI and PHASEQI > 0):
+                if not FALLQI and PHASEQI > 0:
                     lfinal = max(0.0, lcust_qi - dqs)
                     evap = min(lcust_qi - lfinal, evaplimmix)
                     lfinal = lcust_qi - evap
@@ -678,7 +678,7 @@ def cloudsc(
                     solqa_qv_qi += evap
                     solqa_qi_qv -= evap
 
-                if __INLINED(not FALLQR and PHASEQR > 0):
+                if not FALLQR and PHASEQR > 0:
                     lfinal = max(0.0, lcust_qr - dqs)
                     evap = min(lcust_qr - lfinal, evaplimmix)
                     lfinal = lcust_qr - evap
@@ -687,7 +687,7 @@ def cloudsc(
                     solqa_qv_qr += evap
                     solqa_qr_qv -= evap
 
-                if __INLINED(not FALLQS and PHASEQS > 0):
+                if not FALLQS and PHASEQS > 0:
                     lfinal = max(0.0, lcust_qs - dqs)
                     evap = min(lcust_qs - lfinal, evaplimmix)
                     lfinal = lcust_qs - evap
@@ -696,7 +696,7 @@ def cloudsc(
                     solqa_qv_qs += evap
                     solqa_qs_qv -= evap
 
-                if __INLINED(not FALLQV and PHASEQV > 0):
+                if not FALLQV and PHASEQV > 0:
                     lfinal = max(0.0, lcust_qv - dqs)
                     evap = min(lcust_qv - lfinal, evaplimmix)
                     lfinal = lcust_qv - evap
@@ -800,13 +800,13 @@ def cloudsc(
                     rhc += (1 - RAMID) * ((sigk - 0.8) / 0.2) ** 2
 
                 # --- supersaturation options
-                if __INLINED(NSSOPT == 0):
+                if NSSOPT == 0:
                     # no scheme
                     qe = max(0.0, (qv - a * qsice) / max(EPSEC, 1 - a))
-                elif __INLINED(NSSOPT == 1):
+                elif NSSOPT == 1:
                     # Tompkins
                     qe = max(0.0, (qv - a * qsice) / max(EPSEC, 1 - a))
-                elif __INLINED(NSSOPT == 2):
+                elif NSSOPT == 2:
                     # Lohmann and Karcher
                     qe = qv
                 else:
@@ -856,7 +856,7 @@ def cloudsc(
                         qifg += lcond2
 
             # *** 3.6: growth of ice by vapour deposition
-            if __INLINED(DEPICE == 1):  # --- ice deposition following Rotstayn et al. (2001)
+            if DEPICE == 1:  # --- ice deposition following Rotstayn et al. (2001)
                 # --- calculate distance from cloud top
                 if a[0, 0, -1] < RCLDTOPCF and a[0, 0, 0] >= RCLDTOPCF:
                     tmp_cldtopdist[0, 0] = 0.0
@@ -906,7 +906,7 @@ def cloudsc(
                     solqa_ql_qi -= depos
                     qifg += depos
                     qlfg -= depos
-            elif __INLINED(DEPICE == 2):  # --- ice deposition assuming ice PSD
+            elif DEPICE == 2:  # --- ice deposition assuming ice PSD
                 # --- calculate distance from cloud top
                 if a[0, 0, -1] < RCLDTOPCF and a[0, 0, 0] >= RCLDTOPCF:
                     tmp_cldtopdist = 0.0
@@ -974,7 +974,7 @@ def cloudsc(
             icecld = qifg * tmpa
 
             # *** 4.1a: sedimentation/falling of ql
-            if __INLINED(FALLQL):
+            if FALLQL:
                 # --- source from layer above
                 if tmp_klevel[0] > NCLDTOP - 1:
                     fallsrce_ql = pfplsl[0, 0, -1] * dtgdp
@@ -998,14 +998,14 @@ def cloudsc(
                 qpretot += qifg
 
             # --- sink to next layer, constant fall speed
-            if __INLINED(LAERICESED):
+            if LAERICESED:
                 vqi = 0.002 * in_re_ice[0, 0, 0]
             else:
                 vqi = VQI
             fallsink_qi = dtgdp * vqi * rho
 
             # *** 4.1c: sedimentation/falling of qr
-            if __INLINED(FALLQR):
+            if FALLQR:
                 # --- source from layer above
                 if tmp_klevel[0] > NCLDTOP - 1:
                     fallsrce_qr = pfplsr[0, 0, -1] * dtgdp
@@ -1020,7 +1020,7 @@ def cloudsc(
                 fallsink_qr = 0.0
 
             # *** 4.1d: sedimentation/falling of qs
-            if __INLINED(FALLQS):
+            if FALLQS:
                 # --- source from layer above
                 if tmp_klevel[0] > NCLDTOP - 1:
                     fallsrce_qs = pfplss[0, 0, -1] * dtgdp
@@ -1035,7 +1035,7 @@ def cloudsc(
                 fallsink_qs = 0.0
 
             # *** 4.1e: sedimentation/falling of qv
-            if __INLINED(FALLQV):
+            if FALLQV:
                 # --- source from layer above
                 if tmp_klevel[0] > NCLDTOP - 1:
                     fallsrce_qv = pfplsv[0, 0, -1] * dtgdp
@@ -1074,7 +1074,7 @@ def cloudsc(
                 if icecld > EPSEC:
                     co = dt * RSNOWLIN1 * exp(RSNOWLIN2 * (t - RTT))
 
-                    if __INLINED(LAERICEAUTO):
+                    if LAERICEAUTO:
                         lcrit = in_icrit_aer[0, 0, 0]
                         co *= (RNICE / in_nice[0, 0, 0]) ** 0.333
                     else:
@@ -1085,10 +1085,10 @@ def cloudsc(
 
             # *** 4.2b: autoconversion warm clouds
             if liqcld > EPSEC:
-                if __INLINED(WARMRAIN == 1):  # --- warm-rain process follow Sundqvist (1989)
+                if WARMRAIN == 1:  # --- warm-rain process follow Sundqvist (1989)
                     co = RKCONV * dt
 
-                    if __INLINED(LAERLIQAUTOLSP):
+                    if LAERLIQAUTOLSP:
                         lcrit = in_lcrit_aer[0, 0, 0]
                         co *= (RCCN / in_ccn[0, 0, 0]) ** 0.333
                     else:
@@ -1097,7 +1097,7 @@ def cloudsc(
                     # --- parameters for cloud collection by rain and snow
                     precip = (pfplss[0, 0, -1] + pfplsr[0, 0, -1]) / max(EPSEC, tmp_covptot[0, 0])
                     cfpr = 1 + RPRC1 * sqrt(max(precip, 0.0))
-                    if __INLINED(LAERLIQCOLL):
+                    if LAERLIQCOLL:
                         cfpr *= (RCCN / in_ccn[0, 0, 0]) ** 0.333
 
                     co *= cfpr
@@ -1112,9 +1112,7 @@ def cloudsc(
                         solqb_qs_ql += rainaut
                     else:
                         solqb_qr_ql += rainaut
-                elif __INLINED(
-                    WARMRAIN == 2
-                ):  # --- warm-rain process follow Khairoutdinov and Kogan (2000)
+                elif WARMRAIN == 2:  # --- warm-rain process follow Khairoutdinov and Kogan (2000)
                     if in_lsm[0, 0] > 0.5:
                         const = RCL_KK_cloud_num_land
                         lcrit = RCLCRIT_LAND
@@ -1146,7 +1144,7 @@ def cloudsc(
                         solqa_ql_qr -= expr3
 
             # --- riming - collection of cloud liquid drops by snow and ice
-            if __INLINED(WARMRAIN > 1):
+            if WARMRAIN > 1:
                 if t <= RTT and liqcld > EPSEC:
                     # fallspeed air density correction
                     fallcorr = (RDENSREF / rho) ** 0.4
@@ -1238,7 +1236,7 @@ def cloudsc(
                 solqa_ql_qi -= frz
 
             # *** 4.4: evaporation of rain/snow
-            if __INLINED(EVAPRAIN == 1):  # --- rain evaporation scheme from Sundquist
+            if EVAPRAIN == 1:  # --- rain evaporation scheme from Sundquist
                 rh = RPRECRHMAX + (1 - RPRECRHMAX) * tmp_covpmax[0, 0] / max(EPSEC, 1 - a)
                 rh = min(max(rh, RPRECRHMAX), 1.0)
                 qe = (qv - a * qsliq) / max(EPSEC, 1 - a)
@@ -1278,9 +1276,7 @@ def cloudsc(
 
                     # update fg field
                     qrfg -= evap
-            elif __INLINED(
-                EVAPRAIN == 2
-            ):  # --- rain evaporation scheme based on Abel and Boutle (2013)
+            elif EVAPRAIN == 2:  # --- rain evaporation scheme based on Abel and Boutle (2013)
                 # --- calculate relative humidity limit for rain evaporation
                 # limit rh for rain evaporation dependent on precipitation fraction
                 rh = RPRECRHMAX + (1 - RPRECRHMAX) * tmp_covpmax[0, 0] / max(EPSEC, 1 - a)
@@ -1347,7 +1343,7 @@ def cloudsc(
                     qrfg -= evap
 
             # *** 4.5: evaporation of snow
-            if __INLINED(EVAPSNOW == 1):
+            if EVAPSNOW == 1:
                 rh = RPRECRHMAX + (1 - RPRECRHMAX) * tmp_covpmax[0, 0] / max(EPSEC, 1 - a)
                 rh = min(max(rh, RPRECRHMAX), 1.0)
                 qe = (qv - a * qsice) / max(EPSEC, 1 - a)
@@ -1386,7 +1382,7 @@ def cloudsc(
 
                     # update first guess field
                     qsfg -= evap
-            elif __INLINED(EVAPSNOW == 2):
+            elif EVAPSNOW == 2:
                 # --- calculate relative humidity limit for snow evaporation
                 rh = RPRECRHMAX + (1 - RPRECRHMAX) * tmp_covpmax[0, 0] / max(EPSEC, 1 - a)
                 rh = min(max(rh, RPRECRHMAX), 1.0)
@@ -1443,19 +1439,19 @@ def cloudsc(
                     qsfg -= evap
 
             # --- evaporate small precipitation amounts
-            if __INLINED(FALLQL):
+            if FALLQL:
                 if qlfg < RLMIN:
                     solqa_qv_ql += qlfg
                     solqa_ql_qv -= qlfg
-            if __INLINED(FALLQI):
+            if FALLQI:
                 if qifg < RLMIN:
                     solqa_qv_qi += qifg
                     solqa_qi_qv -= qifg
-            if __INLINED(FALLQR):
+            if FALLQR:
                 if qrfg < RLMIN:
                     solqa_qv_qr += qrfg
                     solqa_qr_qv -= qrfg
-            if __INLINED(FALLQS):
+            if FALLQS:
                 if qsfg < RLMIN:
                     solqa_qv_qs += qsfg
                     solqa_qs_qv -= qsfg
@@ -2077,30 +2073,30 @@ def cloudsc(
             # === 6: update tendencies
             # *** 6.1: temperature and CLV budgets
             flux_ql = psupsatsrce_ql + convsrce_ql + fallsrce_ql - (fallsink_ql + convsink_ql) * qln
-            if __INLINED(PHASEQL == 1):
+            if PHASEQL == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (qln - ql - flux_ql) / dt
-            if __INLINED(PHASEQL == 2):
+            if PHASEQL == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (qln - ql - flux_ql) / dt
             out_tnd_loc_ql[0, 0, 0] += (qln - ql0) / dt
 
             flux_qi = psupsatsrce_qi + convsrce_qi + fallsrce_qi - (fallsink_qi + convsink_qi) * qin
-            if __INLINED(PHASEQI == 1):
+            if PHASEQI == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (qin - qi - flux_qi) / dt
-            if __INLINED(PHASEQI == 2):
+            if PHASEQI == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (qin - qi - flux_qi) / dt
             out_tnd_loc_qi[0, 0, 0] += (qin - qi0) / dt
 
             flux_qr = psupsatsrce_qr + convsrce_qr + fallsrce_qr - (fallsink_qr + convsink_qr) * qrn
-            if __INLINED(PHASEQR == 1):
+            if PHASEQR == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (qrn - qr - flux_qr) / dt
-            if __INLINED(PHASEQR == 2):
+            if PHASEQR == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (qrn - qr - flux_qr) / dt
             out_tnd_loc_qr[0, 0, 0] += (qrn - qr0) / dt
 
             flux_qs = psupsatsrce_qs + convsrce_qs + fallsrce_qs - (fallsink_qs + convsink_qs) * qsn
-            if __INLINED(PHASEQS == 1):
+            if PHASEQS == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (qsn - qs - flux_qs) / dt
-            if __INLINED(PHASEQS == 2):
+            if PHASEQS == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (qsn - qs - flux_qs) / dt
             out_tnd_loc_qs[0, 0, 0] += (qsn - qs0) / dt
 
