@@ -20,9 +20,12 @@ static int sched_getcpu() { return 0; }
 
 int mycpu_ ()
 {
-  /* int sched_getcpu(void); */
+  extern int sched_getcpu(void);
   int cpu;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-function-declaration"
   cpu = sched_getcpu();
+#pragma clang diagnostic pop
   return cpu;
 }
 int mycpu() { return mycpu_(); }

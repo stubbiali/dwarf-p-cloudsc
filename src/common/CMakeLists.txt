@@ -8,7 +8,6 @@
 
 ecbuild_enable_fortran(REQUIRED MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/module)
 
-
 list(APPEND CLOUDSC_COMMON_SOURCES
     module/parkind1.F90
     module/yoecldp.F90
@@ -16,19 +15,25 @@ list(APPEND CLOUDSC_COMMON_SOURCES
     module/yoethf.F90
     module/yoephli.F90
     module/yomphyder.F90
-    module/fcttre_mod.F90
-    module/fccld_mod.F90
     module/routines.F90
     module/abor1.F90
     module/timer_mod.F90
     module/mycpu.c
     module/ec_pmon_mod.F90
+    module/oml_mod.F90
     module/file_io_mod.F90
     module/expand_mod.F90
     module/validate_mod.F90
     module/cloudsc_global_state_mod.F90
     module/cloudsc_mpi_mod.F90
 )
+
+if(NOT ENABLE_USE_STMT_FUNC)
+    list(APPEND CLOUDSC_COMMON_SOURCES
+        module/fcttre_mod.F90
+        module/fccld_mod.F90
+    )
+endif()
 
 list(APPEND CLOUDSC_CUDA_SOURCES
     module/fccld_mod.cuf.F90
@@ -39,7 +44,7 @@ list(APPEND CLOUDSC_CUDA_SOURCES
 
 if( HAVE_CUDA )
     # ========================================================================
-    # Compile CUDA fortran files with -MCuda.
+    # Compile CUDA fortran files with -cuda.
     #
     # This is necessary since CMake's CUDA languages does not natively
     # understand CUDA-Fortran (.cuf) yet. So we simply emulate .cuf with
@@ -47,7 +52,7 @@ if( HAVE_CUDA )
     # ========================================================================
     cloudsc_add_compile_options(
         SOURCES ${CLOUDSC_CUDA_SOURCES}
-        FLAGS "-Mcuda=maxregcount:128"
+        FLAGS "-cuda -gpu=maxregcount:128"
     )
 
     # Add CUDA-specific flags to the library if enabled
@@ -69,11 +74,14 @@ endif()
 
 ecbuild_add_library( TARGET cloudsc-common-lib
     TYPE ${LIBRARY_TYPE}
-    DEFINITIONS ${CLOUDSC_DEFINITIONS}
+    DEFINITIONS
+        ${CLOUDSC_DEFINITIONS}
+	    $<${HAVE_FIELD_API}:USE_FIELD_API>
     SOURCES
         ${CLOUDSC_COMMON_SOURCES}
         $<${HAVE_MPI}:module/cloudsc_mpif.F90>
         $<${HAVE_HDF5}:module/hdf5_file_mod.F90>
+        $<${HAVE_FIELD_API}:module/cloudsc_field_state_mod.F90>
     PRIVATE_INCLUDES
         $<${HAVE_HDF5}:${HDF5_Fortran_INCLUDE_DIRS}>
     PUBLIC_INCLUDES
@@ -86,4 +94,9 @@ ecbuild_add_library( TARGET cloudsc-common-lib
         $<${HAVE_MPI}:MPI::MPI_Fortran>
         $<${HAVE_HDF5}:hdf5::hdf5_fortran>
         $<${HAVE_SERIALBOX}:Serialbox::Serialbox_Fortran>
+        $<${HAVE_FIELD_API}:field_api>
 )
+
+if( HAVE_CUDA )
+    target_link_options( cloudsc-common-lib PUBLIC "-cuda" )
+endif()

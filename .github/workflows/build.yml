@@ -17,10 +17,10 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
-    name: Test on ${{ matrix.arch }} ${{ matrix.io_library_flag }} ${{ matrix.mpi_flag }} ${{ matrix.prec_flag }} ${{ matrix.gpu_flag }} ${{ matrix.loki_flag }} ${{ matrix.claw_flag }}
+    name: Test on ${{ matrix.arch }} ${{ matrix.io_library_flag }} ${{ matrix.mpi_flag }} ${{ matrix.prec_flag }} ${{ matrix.gpu_flag }} ${{ matrix.loki_flag }} ${{ matrix.claw_flag }} ${{ matrix.pyiface_flag }} ${{ matrix.python_f2py_flag }}
 
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false  # false: try to complete all jobs
@@ -38,9 +38,15 @@ jobs:
 
         gpu_flag: ['', '--with-gpu']  # GPU-variants enabled
 
+        cuda_flag: ['']  # Enable CUDA variants
+
         loki_flag: ['', '--with-loki']  # Loki source-to-source translation enabled
 
         claw_flag: ['']  # Flag to enable CLAW-generated variants
+
+        pyiface_flag: ['']  # Flag to enable Python-interface variant
+
+        python_f2py_flag: ['']  # Flag to enable Python variants
 
         include:
           # Add nvhpc build configurations with serialbox and HDF5
@@ -49,11 +55,29 @@ jobs:
             mpi_flag: ''
             prec_flag: ''
             gpu_flag: '--with-gpu'
+            cuda_flag: '--with-cuda'
+            loki_flag: '--with-loki'
+            pyiface_flag: ''
+            python_f2py_flag: ''
           - arch: github/ubuntu/nvhpc/21.9
             io_library_flag: '--with-serialbox'
             mpi_flag: ''
             prec_flag: ''
             gpu_flag: '--with-gpu'
+            cuda_flag: '--with-cuda'
+            loki_flag: '--with-loki'
+            pyiface_flag: ''
+            python_f2py_flag: ''
+          # Add pyiface build configuration for HDF5 only
+          - arch: github/ubuntu/gnu/9.4.0
+            io_library_flag: ''
+            mpi_flag: ''
+            prec_flag: ''
+            gpu_flag: ''
+            cuda_flag: ''
+            loki_flag: ''
+            pyiface_flag: '--cloudsc-fortran-pyiface=ON'
+            python_f2py_flag: '--cloudsc-python-f2py=ON'
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -63,7 +87,7 @@ jobs:
       # Installs required packages
       - name: Package installation
         run: |
-          sudo apt-get install libc-dev-bin
+          sudo apt-get install libc-dev-bin gfortran-9 gcc-9 g++-9
 
       # Install MPI
       - name: Install MPI via Apt
@@ -99,7 +123,8 @@ jobs:
           ./cloudsc-bundle build --retry-verbose \
           --arch=arch/${{ matrix.arch }} ${{ matrix.prec_flag }} \
           ${{ matrix.mpi_flag }} ${{ matrix.io_library_flag }} ${{ matrix.gpu_flag }} \
-          ${{ matrix.claw_flag}} ${{ matrix.loki_flag }}
+          ${{ matrix.claw_flag}} ${{ matrix.loki_flag }} ${{ matrix.cuda_flag }} \
+          ${{ matrix.pyiface_flag }} ${{ matrix.python_f2py_flag }}
 
       # Verify targets exist
       - name: Verify targets
@@ -107,8 +132,11 @@ jobs:
           io_library_flag: ${{ matrix.io_library_flag }}
           prec_flag: ${{ matrix.prec_flag }}
           gpu_flag: ${{ matrix.gpu_flag }}
+          cuda_flag: ${{ matrix.cuda_flag }}
           loki_flag: ${{ matrix.loki_flag }}
           claw_flag: ${{ matrix.claw_flag }}
+          pyiface_flag: ${{ matrix.pyiface_flag }}
+          python_f2py_flag: ${{ matrix.python_f2py_flag }}
         run: .github/scripts/verify-targets.sh
 
       # Run double-precision targets
