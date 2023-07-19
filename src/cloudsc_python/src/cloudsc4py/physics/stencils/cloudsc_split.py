@@ -2109,7 +2109,7 @@ def cloudsc_tendencies(
             )
             if PHASEQL == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (out_qln[0, 0, 0] - ql - flux_ql) / dt
-            if PHASEQL == 2:
+            elif PHASEQL == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (out_qln[0, 0, 0] - ql - flux_ql) / dt
             out_tnd_loc_ql[0, 0, 0] += (out_qln[0, 0, 0] - out_ql0[0, 0, 0]) / dt
 
@@ -2121,7 +2121,7 @@ def cloudsc_tendencies(
             )
             if PHASEQI == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (out_qin[0, 0, 0] - qi - flux_qi) / dt
-            if PHASEQI == 2:
+            elif PHASEQI == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (out_qin[0, 0, 0] - qi - flux_qi) / dt
             out_tnd_loc_qi[0, 0, 0] += (out_qin[0, 0, 0] - out_qi0[0, 0, 0]) / dt
 
@@ -2133,7 +2133,7 @@ def cloudsc_tendencies(
             )
             if PHASEQR == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (out_qrn[0, 0, 0] - qr - flux_qr) / dt
-            if PHASEQR == 2:
+            elif PHASEQR == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (out_qrn[0, 0, 0] - qr - flux_qr) / dt
             out_tnd_loc_qr[0, 0, 0] += (out_qrn[0, 0, 0] - out_qr0[0, 0, 0]) / dt
 
@@ -2145,7 +2145,7 @@ def cloudsc_tendencies(
             )
             if PHASEQS == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (out_qsn[0, 0, 0] - qs - flux_qs) / dt
-            if PHASEQS == 2:
+            elif PHASEQS == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (out_qsn[0, 0, 0] - qs - flux_qs) / dt
             out_tnd_loc_qs[0, 0, 0] += (out_qsn[0, 0, 0] - out_qs0[0, 0, 0]) / dt
 

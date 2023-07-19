@@ -2075,28 +2075,28 @@ def cloudsc(
             flux_ql = psupsatsrce_ql + convsrce_ql + fallsrce_ql - (fallsink_ql + convsink_ql) * qln
             if PHASEQL == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (qln - ql - flux_ql) / dt
-            if PHASEQL == 2:
+            elif PHASEQL == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (qln - ql - flux_ql) / dt
             out_tnd_loc_ql[0, 0, 0] += (qln - ql0) / dt
 
             flux_qi = psupsatsrce_qi + convsrce_qi + fallsrce_qi - (fallsink_qi + convsink_qi) * qin
             if PHASEQI == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (qin - qi - flux_qi) / dt
-            if PHASEQI == 2:
+            elif PHASEQI == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (qin - qi - flux_qi) / dt
             out_tnd_loc_qi[0, 0, 0] += (qin - qi0) / dt
 
             flux_qr = psupsatsrce_qr + convsrce_qr + fallsrce_qr - (fallsink_qr + convsink_qr) * qrn
             if PHASEQR == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (qrn - qr - flux_qr) / dt
-            if PHASEQR == 2:
+            elif PHASEQR == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (qrn - qr - flux_qr) / dt
             out_tnd_loc_qr[0, 0, 0] += (qrn - qr0) / dt
 
             flux_qs = psupsatsrce_qs + convsrce_qs + fallsrce_qs - (fallsink_qs + convsink_qs) * qsn
             if PHASEQS == 1:
                 out_tnd_loc_t[0, 0, 0] += RALVDCP * (qsn - qs - flux_qs) / dt
-            if PHASEQS == 2:
+            elif PHASEQS == 2:
                 out_tnd_loc_t[0, 0, 0] += RALSDCP * (qsn - qs - flux_qs) / dt
             out_tnd_loc_qs[0, 0, 0] += (qsn - qs0) / dt
 
