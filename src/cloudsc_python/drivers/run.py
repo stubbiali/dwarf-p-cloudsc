@@ -1,17 +1,27 @@
 # -*- coding: utf-8 -*-
+
+# (C) Copyright 2018- ECMWF.
+# (C) Copyright 2022- ETH Zurich.
+
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 import click
 import csv
 import datetime
 import os
 from typing import Optional, Type
 
-from cloudsc4py.framework.grid import ComputationalGrid
 from cloudsc4py.physics.cloudsc import Cloudsc
 from cloudsc4py.initialization.reference import get_reference_tendencies, get_reference_diagnostics
 from cloudsc4py.initialization.state import get_state
 from cloudsc4py.utils.iox import HDF5Reader
-from cloudsc4py.utils.timing import timing
-from cloudsc4py.utils.validation import validate
+from ifs_physics_common.framework.grid import ComputationalGrid
+from ifs_physics_common.utils.timing import timing
+from ifs_physics_common.utils.validation import validate
 
 from config import PythonConfig, IOConfig, default_python_config, default_io_config
 from utils import print_performance, to_csv
@@ -43,13 +53,15 @@ def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
     )
     tends, diags = cloudsc(state, dt)
 
-    runtimes = []
+    config.gt4py_config.reset_exec_info()
+
+    runtime_l = []
     for i in range(config.num_runs):
         with timing(f"run_{i}") as timer:
             cloudsc(state, dt, out_tendencies=tends, out_diagnostics=diags)
-        runtimes.append(timer.get_time(f"run_{i}") * 1000)
+        runtime_l.append(timer.get_time(f"run_{i}"))
 
-    runtime_mean, runtime_stddev = print_performance(runtimes)
+    runtime_mean, runtime_stddev, mflops_mean, mflops_stddev = print_performance(nx, runtime_l)
 
     if io_config.output_csv_file is not None:
         to_csv(
@@ -57,9 +69,13 @@ def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
             io_config.host_name,
             config.gt4py_config.backend,
             nx,
+            24,
+            1,
             config.num_runs,
             runtime_mean,
             runtime_stddev,
+            mflops_mean,
+            mflops_stddev,
         )
 
     if config.enable_validation:
@@ -120,6 +136,12 @@ def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
     default=1,
     help="Number of executions.\n\nDefault: 1.",
 )
+@click.option(
+    "--precision",
+    type=str,
+    default="double",
+    help="Select either `double` (default) or `single` precision.",
+)
 @click.option("--host-alias", type=str, default=None, help="Name of the host machine (optional).")
 @click.option(
     "--output-csv-file",
@@ -139,6 +161,7 @@ def main(
     enable_validation: bool,
     num_cols: Optional[int],
     num_runs: Optional[int],
+    precision: str,
     host_alias: Optional[str],
     output_csv_file: Optional[str],
     output_csv_file_stencils: Optional[str],
@@ -154,6 +177,7 @@ def main(
         .with_validation(enable_validation)
         .with_num_cols(num_cols)
         .with_num_runs(num_runs)
+        .with_precision(precision)
     )
     io_config = default_io_config.with_output_csv_file(output_csv_file).with_host_name(host_alias)
     core(config, io_config, cloudsc_cls=Cloudsc)

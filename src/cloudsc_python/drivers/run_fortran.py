@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+
+# (C) Copyright 2018- ECMWF.
+# (C) Copyright 2022- ETH Zurich.
+
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 import click
 import os
 import subprocess
@@ -16,7 +26,7 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
         raise RuntimeError(f"The executable `{executable}` does not exist.")
 
     # warm-up cache
-    _ = subprocess.run(
+    out = subprocess.run(
         [
             executable,
             str(config.num_threads),
@@ -25,9 +35,12 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
         ],
         capture_output=True,
     )
+    if out.returncode:
+        raise RuntimeError(out.stderr.decode("utf-8"))
 
     # run and profile
-    runtimes = []
+    runtime_l = []
+    mflops_l = []
     for _ in range(config.num_runs):
         out = subprocess.run(
             [
@@ -38,18 +51,35 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
             ],
             capture_output=True,
         )
-        if "gpu" in config.variant:
-            x = out.stderr.decode("utf-8").split("\n")[2]
+
+        if config.variant in ("cuda", "cuda-hoist", "cuda-k-caching"):
+            x = out.stdout.decode("utf-8").split("\n")[2]
             y = x.split(" ")
             z = [c for c in y if c != ""]
-            runtimes.append(float(z[-4]))
+            runtime_l.append(float(z[-4]))
+            mflops_l.append(float(z[-3]))
+        elif config.variant in (
+            "gpu-scc-cuf-k-caching",
+            "gpu-scc-hoist",
+            "gpu-scc-k-caching",
+            "loki-scc-cuf-hoist",
+            "loki-scc-hoist",
+        ):
+            x = out.stderr.decode("utf-8").split("\n")[3]
+            y = x.split(" ")
+            z = [c for c in y if c != ""]
+            runtime_l.append(float(z[-5]))
+            mflops_l.append(float(z[-4]))
         else:
             x = out.stderr.decode("utf-8").split("\n")[-2]
             y = x.split(" ")
             z = [c for c in y if c != ""]
-            runtimes.append(float(z[-4]))
+            runtime_l.append(float(z[-5]))
+            mflops_l.append(float(z[-4]))
 
-    runtime_mean, runtime_stddev = print_performance(runtimes)
+    runtime_mean, runtime_stddev, mflops_mean, mflops_stddev = print_performance(
+        config.num_cols, runtime_l, mflops_l
+    )
 
     if io_config.output_csv_file is not None:
         to_csv(
@@ -57,9 +87,13 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
             io_config.host_name,
             config.variant,
             config.num_cols,
+            config.num_threads,
+            config.nproma,
             config.num_runs,
             runtime_mean,
             runtime_stddev,
+            mflops_mean,
+            mflops_stddev,
         )
 
 
@@ -70,14 +104,7 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
     default="fortran",
     help="Path to the build directory of the FORTRAN dwarf.",
 )
-@click.option(
-    "--variant",
-    type=str,
-    default="fortran",
-    help="Code variant."
-    "\n\nOptions: fortran, gpu-scc, gpu-scc-hoist, gpu-omp-scc-hoist."
-    "\n\nDefault: fortran.",
-)
+@click.option("--variant", type=str, default="fortran", help="Code variant.\n\nDefault: fortran.")
 @click.option(
     "--nproma",
     type=int,
@@ -85,12 +112,7 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
     help="Block size.\n\nRecommended values: 32 on CPUs, 128 on GPUs.\n\nDefault: 32.",
 )
 @click.option("--num-cols", type=int, default=1, help="Number of domain columns.\n\nDefault: 1.")
-@click.option(
-    "--num-runs",
-    type=int,
-    default=1,
-    help="Number of executions.\n\nDefault: 1.",
-)
+@click.option("--num-runs", type=int, default=1, help="Number of executions.\n\nDefault: 1.")
 @click.option(
     "--num-threads",
     type=int,

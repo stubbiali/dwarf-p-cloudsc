@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
+
+# (C) Copyright 2018- ECMWF.
+# (C) Copyright 2022- ETH Zurich.
+
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 from __future__ import annotations
 import numpy as np
 from os.path import dirname, join, normpath, splitext
 from pydantic import BaseModel, validator
 import socket
-from typing import Optional
+from typing import Literal, Optional
 
-from cloudsc4py.framework.config import DataTypes, GT4PyConfig
+from ifs_physics_common.framework.config import DataTypes, GT4PyConfig
 
 
 class IOConfig(BaseModel):
@@ -97,6 +107,11 @@ class PythonConfig(BaseModel):
             args["num_runs"] = num_runs
         return PythonConfig(**args)
 
+    def with_precision(self, precision: Literal["double", "single"]) -> PythonConfig:
+        args = self.dict()
+        args["data_types"] = self.data_types.with_precision(precision)
+        return PythonConfig(**args)
+
     def with_validation(self, enabled: bool) -> PythonConfig:
         args = self.dict()
         args["enable_validation"] = enabled
@@ -110,7 +125,7 @@ default_python_config = PythonConfig(
     input_file=join(config_files_dir, "input.h5"),
     reference_file=join(config_files_dir, "reference.h5"),
     num_runs=15,
-    data_types=DataTypes(bool=bool, float=np.float64, int=int),
+    data_types=DataTypes(bool=bool, float=np.float64, int=np.int64),
     gt4py_config=GT4PyConfig(backend="numpy", rebuild=False, validate_args=True, verbose=True),
     sympl_enable_checks=True,
 )

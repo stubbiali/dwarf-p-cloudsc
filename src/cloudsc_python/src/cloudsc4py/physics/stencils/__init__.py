@@ -9,13 +9,9 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-from setuptools import setup
-import sys
-
-
-if sys.version_info.major < 3:
-    print("Python 3.x is required.")
-    sys.exit(1)
-
-
-setup(use_scm_version=False)
+import cloudsc4py.physics.stencils.cloudsc
+import cloudsc4py.physics.stencils.cloudsc_split
+import cloudsc4py.physics.stencils.cuadjtq
+import cloudsc4py.physics.stencils.fccld
+import cloudsc4py.physics.stencils.fcttre
+import cloudsc4py.physics.stencils.helpers

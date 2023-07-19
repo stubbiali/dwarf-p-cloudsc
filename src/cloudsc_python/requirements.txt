@@ -1,6 +1,7 @@
 click
-gt4py[dace]@git+https://github.com/gridtools/gt4py.git#egg=gt4py
+gt4py[dace]>=1.0.1
 h5py
+ifs_physics_common@git+https://github.com/stubbiali/ifs-physics-common.git@main
 numpy
 pandas
 pydantic

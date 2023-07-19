@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+
+# (C) Copyright 2018- ECMWF.
+# (C) Copyright 2022- ETH Zurich.
+
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 from __future__ import annotations
 from datetime import timedelta
 from functools import lru_cache
@@ -7,13 +17,13 @@ import numpy as np
 from pydantic import BaseModel
 from typing import TYPE_CHECKING
 
-from cloudsc4py.utils.f2py import ported_method
+from ifs_physics_common.utils.f2py import ported_method
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import Optional, Type
 
-    from cloudsc4py.framework.config import DataTypes
+    from ifs_physics_common.framework.config import DataTypes
 
 
 class YoecldpParameters(BaseModel):
@@ -218,7 +228,7 @@ class HDF5Reader:
         return self.f["KLON"][0]
 
     def get_timestep(self) -> timedelta:
-        return timedelta(seconds=self._get_parameter_f("PTSPHY"))
+        return timedelta(seconds=float(self._get_parameter_f("PTSPHY")))
 
     @ported_method(from_file="common/module/yoecldp.F90", from_line=86, to_line=91)
     def get_yoecldp_parameters(self) -> YoecldpParameters:

@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+
+# (C) Copyright 2018- ECMWF.
+# (C) Copyright 2022- ETH Zurich.
+
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 from __future__ import annotations
 from functools import cached_property
 from itertools import repeat
@@ -6,26 +16,24 @@ import numpy as np
 import sys
 from typing import TYPE_CHECKING
 
-from cloudsc4py.framework.components import ImplicitTendencyComponent
-from cloudsc4py.framework.grid import I, J, K
-from cloudsc4py.framework.storage import managed_temporary_storage
-from cloudsc4py.utils.numpyx import assign
+from ifs_physics_common.framework.components import ImplicitTendencyComponent
+from ifs_physics_common.framework.grid import I, J, K
+from ifs_physics_common.framework.storage import managed_temporary_storage
+from ifs_physics_common.utils.numpyx import assign
 
 if TYPE_CHECKING:
     from datetime import timedelta
     from typing import Dict
 
-    from sympl._core.typingx import PropertyDict
-
-    from cloudsc4py.framework.config import GT4PyConfig
-    from cloudsc4py.framework.grid import ComputationalGrid
     from cloudsc4py.utils.iox import (
         YoecldpParameters,
         YoethfParameters,
         YomcstParameters,
         YrecldpParameters,
     )
-    from cloudsc4py.utils.typingx import StorageDict
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid
+    from ifs_physics_common.utils.typingx import PropertyDict, StorageDict
 
 
 class Cloudsc(ImplicitTendencyComponent):

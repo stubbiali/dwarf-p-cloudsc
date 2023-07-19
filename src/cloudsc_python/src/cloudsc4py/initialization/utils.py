@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
+
+# (C) Copyright 2018- ECMWF.
+# (C) Copyright 2022- ETH Zurich.
+
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 from __future__ import annotations
 import numpy as np
 from typing import TYPE_CHECKING
 
-from cloudsc4py.utils.numpyx import assign
+from ifs_physics_common.utils.numpyx import assign
 
 if TYPE_CHECKING:
-    from sympl._core.data_array import DataArray
-
-    from cloudsc4py.utils.typingx import Storage
+    from ifs_physics_common.utils.typingx import DataArray, Storage
 
 
 def initialize_storage_2d(storage: Storage, buffer: np.ndarray) -> None:

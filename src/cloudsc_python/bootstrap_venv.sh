@@ -1,3 +1,12 @@
+# (C) Copyright 2018- ECMWF.
+# (C) Copyright 2022- ETH Zurich.
+
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 #!/bin/bash
 
 PYTHON=$(which python3)
@@ -22,16 +31,13 @@ function install()
   # install cloudsc4py
   pip install -e .
 
-  # install gt sources
-  python -m gt4py.gt_src_manager install
-
   # setup gt4py cache
   mkdir -p gt_cache
   echo -e "\nexport GT_CACHE_ROOT=$PWD/gt_cache" >> "$VENV"/bin/activate
 
   # install cupy
   if [ "$INSTALL_CUPY" -eq 1 ]; then
-    pip install "$CUPY_VERSION"
+    pip install "$CUPY_VERSION" --no-cache
   fi
 
   # install development packages

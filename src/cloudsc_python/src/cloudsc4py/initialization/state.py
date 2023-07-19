@@ -1,22 +1,30 @@
 # -*- coding: utf-8 -*-
+
+# (C) Copyright 2018- ECMWF.
+# (C) Copyright 2022- ETH Zurich.
+
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 from __future__ import annotations
 from datetime import datetime
 from functools import partial
 from typing import TYPE_CHECKING
 
-from cloudsc4py.framework.grid import I, J, K
-from cloudsc4py.framework.storage import allocate_data_array
 from cloudsc4py.initialization.utils import initialize_field
+from ifs_physics_common.framework.grid import I, J, K
+from ifs_physics_common.framework.storage import allocate_data_array
 
 if TYPE_CHECKING:
     from typing import Literal, Tuple
 
-    from sympl._core.data_array import DataArray
-    from sympl._core.typingx import DataArrayDict
-
-    from cloudsc4py.framework.config import GT4PyConfig
-    from cloudsc4py.framework.grid import ComputationalGrid, DimSymbol
     from cloudsc4py.utils.iox import HDF5Reader
+    from ifs_physics_common.framework.config import GT4PyConfig
+    from ifs_physics_common.framework.grid import ComputationalGrid, DimSymbol
+    from ifs_physics_common.utils.typingx import DataArray, DataArrayDict
 
 
 def allocate_state(
