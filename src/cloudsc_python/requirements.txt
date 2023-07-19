@@ -1,5 +1,5 @@
 click
-gt4py[dace]>=1.0.1
+gt4py[dace]@git+https://github.com/GridTools/gt4py.git@main
 h5py
 ifs_physics_common@git+https://github.com/stubbiali/ifs-physics-common.git@main
 numpy
