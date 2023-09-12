@@ -1,16 +1,58 @@
 [build-system]
-requires = ['setuptools>=42', 'wheel']
+build-backend = 'setuptools.build_meta'
+requires = ['setuptools>=65.5.0', 'wheel']
 
-[tool.setuptools_scm]
+[project]
+authors = [
+    {name = 'ETH Zurich', email = 'subbiali@phys.ethz.ch'},
+    {name = 'ECMWF', email = 'michael.lange@ecmwf.int'},
+]
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: Science/Research',
+    'Operating System :: POSIX',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Topic :: Scientific/Engineering :: Atmospheric Science',
+]
+dependencies = [
+    'click>=8.0',
+    'gt4py[dace] @ git+https://github.com/GridTools/gt4py.git@main',
+    'h5py>=3.0',
+    'ifs_physics_common @ git+https://github.com/stubbiali/ifs-physics-common.git@main',
+    'numpy>=1.21',
+    'pydantic>=1.9',
+    'sympl @ git+https://github.com/stubbiali/sympl.git@oop'
+]
+description = 'GT4Py-based implementation of the CLOUDSC dwarf.'
+keywords = [
+    'cloud microphysics',
+]
+#license = {text = 'Apache-2'}  # to be sorted out
+name = 'cloudsc4py'
+#readme = {file = 'README.md', content-type = 'text/markdown'}
+requires-python = '>=3.8'
+version = '0.0'
+
+[project.optional-dependencies]
+dev = ['black>=22.6.0', 'flake8', 'ipdb', 'ipython', 'mypy', 'pre-commit']
+gpu = ['cython==0.29.36', 'cupy']
+gpu-cuda11x = ['cupy-cuda11x']
+gpu-cuda12x = ['cupy-cuda12x']
+
+[project.urls]
+Source = 'https://github.com/ecmwf-ifs/dwarf-p-cloudsc.git'
 
 [tool.black]
 line-length = 100
-target-version = ['py37', 'py38', 'py39']
+target-version = ['py39']
 include = '\.pyi?$'
 exclude = '''
 /(
     \.eggs
   | \.git
+  | \.gt_cache
   | \.hg
   | \.mypy_cache
   | \.tox
@@ -26,3 +68,35 @@ exclude = '''
   | profiling
 )/
 '''
+
+[tool.mypy]
+check_untyped_defs = true
+# set to `true` once cupy and sympl support typing
+disallow_any_unimported = false
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+exclude = [
+    'src/cloudsc4py/physics/_stencils/',
+]
+implicit_optional = false
+install_types = true
+plugins = 'numpy.typing.mypy_plugin'
+show_column_numbers = true
+show_error_codes = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = 'h5py'
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = 'sympl.*'
+ignore_missing_imports = true
+
+[tool.setuptools]
+platforms = ['Linux', 'Mac']
+
+[tool.setuptools.packages]
+find = {namespaces = false, where = ['src']}
