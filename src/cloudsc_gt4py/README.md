@@ -40,7 +40,7 @@ The package `cloudsc4py` can be installed using the Python package manager [pip]
 (venv) $ export CUPY_INSTALL_USE_HIP=1
 (venv) $ export ROCM_HOME=<path to ROCm installation>
 (venv) $ export HCC_AMDGPU_TARGET=<string denoting the Instruction Set Architecture (ISA) supported by the target GPU>
-(venv) $ pip install .[gpu-rocm]
+(venv) $ pip install .[gpu]
 ```
 
 ## Usage
