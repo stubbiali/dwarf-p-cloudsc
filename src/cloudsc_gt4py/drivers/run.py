@@ -9,6 +9,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+from __future__ import annotations
 import click
 import csv
 import datetime
@@ -67,6 +68,7 @@ def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
         to_csv(
             io_config.output_csv_file,
             io_config.host_name,
+            config.precision,
             config.gt4py_config.backend,
             nx,
             24,
@@ -111,31 +113,27 @@ def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
     "--backend",
     type=str,
     default=None,
-    help="GT4Py backend."
-    "\n\nOptions: numpy, gt:cpu_kfirst, gt:cpu_ifirst, gt:gpu, cuda, dace:cpu, dace:gpu."
-    "\n\nDefault: numpy.",
+    help=(
+        "GT4Py backend (options: cuda, dace:cpu, dace:gpu, gt:cpu_ifirst, gt:cpu_kfirst, gt:gpu, "
+        "numpy; default: numpy)."
+    ),
 )
 @click.option(
     "--enable-checks/--disable-checks",
     is_flag=True,
     type=bool,
     default=False,
-    help="Enable/disable sanity checks performed by Sympl and GT4Py.\n\nDefault: enabled.",
+    help="Enable/disable sanity checks performed by Sympl and GT4Py (default: enabled).",
 )
 @click.option(
     "--enable-validation/--disable-validation",
     is_flag=True,
     type=bool,
     default=True,
-    help="Enable/disable data validation.\n\nDefault: enabled.",
+    help="Enable/disable data validation (default: enabled).",
 )
-@click.option("--num-cols", type=int, default=None, help="Number of domain columns.\n\nDefault: 1.")
-@click.option(
-    "--num-runs",
-    type=int,
-    default=1,
-    help="Number of executions.\n\nDefault: 1.",
-)
+@click.option("--num-cols", type=int, default=None, help="Number of domain columns (default: 1).")
+@click.option("--num-runs", type=int, default=1, help="Number of executions (default: 1).")
 @click.option(
     "--precision",
     type=str,
@@ -191,13 +189,16 @@ def main(
         if not os.path.exists(output_csv_file_stencils):
             with open(output_csv_file_stencils, "w") as f:
                 writer = csv.writer(f, delimiter=",")
-                writer.writerow(("date", "host", "backend", "num_cols", "num_runs", "cloudsc"))
+                writer.writerow(
+                    ("date", "host", "precision", "backend", "num_cols", "num_runs", "cloudsc")
+                )
         with open(output_csv_file_stencils, "a") as f:
             writer = csv.writer(f, delimiter=",")
             writer.writerow(
                 (
                     datetime.date.today().strftime("%Y%m%d"),
                     io_config.host_name,
+                    config.precision,
                     config.gt4py_config.backend,
                     config.num_cols,
                     config.num_runs,

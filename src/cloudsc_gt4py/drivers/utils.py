@@ -16,12 +16,13 @@ import os
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Optional, Tuple
+    from typing import Literal, Optional, Sequence, Tuple
 
 
 def to_csv(
     output_file: str,
     host_name: str,
+    precision: Literal["double", "single"],
     variant: str,
     num_cols: int,
     num_threads: int,
@@ -40,6 +41,7 @@ def to_csv(
                 (
                     "date",
                     "host",
+                    "precision",
                     "variant",
                     "num_cols",
                     "num_threads",
@@ -57,6 +59,7 @@ def to_csv(
             (
                 datetime.date.today().strftime("%Y%m%d"),
                 host_name,
+                precision,
                 variant,
                 num_cols,
                 num_threads,
@@ -71,7 +74,7 @@ def to_csv(
 
 
 def print_performance(
-    num_cols: int, runtime_l: list[float], mflops_l: Optional[list[float]] = None
+    num_cols: int, runtime_l: Sequence[float], mflops_l: Optional[Sequence[float]] = None
 ) -> Tuple[float, float, float, float]:
     """Print means and standard deviation of runtimes and MFLOPS."""
     n = len(runtime_l)

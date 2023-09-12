@@ -73,6 +73,7 @@ class PythonConfig(BaseModel):
     num_runs: int
 
     # low-level and/or backend-related
+    precision: Literal["double", "single"]
     data_types: DataTypes
     gt4py_config: GT4PyConfig
     sympl_enable_checks: bool
@@ -109,6 +110,7 @@ class PythonConfig(BaseModel):
 
     def with_precision(self, precision: Literal["double", "single"]) -> PythonConfig:
         args = self.dict()
+        args["precision"] = precision
         args["data_types"] = self.data_types.with_precision(precision)
         return PythonConfig(**args)
 
@@ -125,6 +127,7 @@ default_python_config = PythonConfig(
     input_file=join(config_files_dir, "input.h5"),
     reference_file=join(config_files_dir, "reference.h5"),
     num_runs=15,
+    precision="double",
     data_types=DataTypes(bool=bool, float=np.float64, int=np.int64),
     gt4py_config=GT4PyConfig(backend="numpy", rebuild=False, validate_args=True, verbose=True),
     sympl_enable_checks=True,
@@ -135,6 +138,7 @@ class FortranConfig(BaseModel):
     """Gathers options controlling execution of FORTRAN code."""
 
     build_dir: str
+    precision: Literal["double", "single"]
     variant: str
     nproma: int
     num_cols: int
@@ -166,6 +170,11 @@ class FortranConfig(BaseModel):
         args["num_threads"] = num_threads
         return FortranConfig(**args)
 
+    def with_precision(self, precision: str) -> FortranConfig:
+        args = self.dict()
+        args["precision"] = precision
+        return FortranConfig(**args)
+
     def with_variant(self, variant: str) -> FortranConfig:
         args = self.dict()
         args["variant"] = variant
@@ -173,5 +182,11 @@ class FortranConfig(BaseModel):
 
 
 default_fortran_config = FortranConfig(
-    build_dir=".", variant="fortran", nproma=32, num_cols=1, num_runs=1, num_threads=1
+    build_dir=".",
+    precision="double",
+    variant="fortran",
+    nproma=32,
+    num_cols=1,
+    num_runs=1,
+    num_threads=1,
 )
