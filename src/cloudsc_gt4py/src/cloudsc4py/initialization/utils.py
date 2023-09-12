@@ -16,10 +16,14 @@ from typing import TYPE_CHECKING
 from ifs_physics_common.utils.numpyx import assign
 
 if TYPE_CHECKING:
-    from ifs_physics_common.utils.typingx import DataArray, Storage
+    from numpy.typing import NDArray
+
+    from sympl._core.typingx import DataArray
+
+    from ifs_physics_common.utils.typingx import ArrayLike
 
 
-def initialize_storage_2d(storage: Storage, buffer: np.ndarray) -> None:
+def initialize_storage_2d(storage: ArrayLike, buffer: NDArray) -> None:
     ni = storage.shape[0]
     mi = buffer.size
     nb = ni // mi
@@ -28,7 +32,7 @@ def initialize_storage_2d(storage: Storage, buffer: np.ndarray) -> None:
     assign(storage[nb * mi :, 0:1], buffer[: ni - nb * mi, np.newaxis])
 
 
-def initialize_storage_3d(storage: Storage, buffer: np.ndarray) -> None:
+def initialize_storage_3d(storage: ArrayLike, buffer: NDArray) -> None:
     ni, _, nk = storage.shape
     mi, mk = buffer.shape
     lk = min(nk, mk)
@@ -38,7 +42,7 @@ def initialize_storage_3d(storage: Storage, buffer: np.ndarray) -> None:
     assign(storage[nb * mi :, 0:1, :lk], buffer[: ni - nb * mi, np.newaxis, :lk])
 
 
-def initialize_field(field: DataArray, buffer: np.ndarray) -> None:
+def initialize_field(field: DataArray, buffer: NDArray) -> None:
     if field.ndim == 2:
         initialize_storage_2d(field.data, buffer)
     elif field.ndim == 3:

@@ -11,7 +11,7 @@
 
 from gt4py.cartesian import gtscript
 
-from cloudsc4py.physics.stencils.fcttre import f_foedem, f_foeewm, f_foeldcpm
+from cloudsc4py.physics._stencils.fcttre import f_foedem, f_foeewm, f_foeldcpm
 from ifs_physics_common.framework.stencil import function_collection
 from ifs_physics_common.utils.f2py import ported_function
 

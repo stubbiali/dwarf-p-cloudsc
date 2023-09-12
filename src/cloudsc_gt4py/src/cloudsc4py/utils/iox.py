@@ -21,7 +21,8 @@ from ifs_physics_common.utils.f2py import ported_method
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from typing import Optional, Type
+    from numpy.typing import NDArray
+    from typing import Dict, Optional, Type, Union
 
     from ifs_physics_common.framework.config import DataTypes
 
@@ -205,7 +206,7 @@ class HDF5Reader:
     def __del__(self) -> None:
         self.f.close()
 
-    def get_field(self, name: str) -> np.ndarray:
+    def get_field(self, name: str) -> NDArray:
         ds = self.f.get(name, None)
         if ds is None:
             raise RuntimeError(f"Unknown field `{name}`.")
@@ -221,11 +222,11 @@ class HDF5Reader:
 
     @lru_cache
     def get_nlev(self) -> int:
-        return self.f["KLEV"][0]
+        return self.f["KLEV"][0]  # type: ignore[no-any-return]
 
     @lru_cache
     def get_nlon(self) -> int:
-        return self.f["KLON"][0]
+        return self.f["KLON"][0]  # type: ignore[no-any-return]
 
     def get_timestep(self) -> timedelta:
         return timedelta(seconds=float(self._get_parameter_f("PTSPHY")))
@@ -238,34 +239,34 @@ class HDF5Reader:
 
     @ported_method(from_file="common/module/yoethf.F90", from_line=79, to_line=99)
     def get_yoethf_parameters(self) -> YoethfParameters:
-        return self._initialize_parameters(YoethfParameters)
+        return self._initialize_parameters(YoethfParameters)  # type: ignore[return-value]
 
     @ported_method(from_file="common/module/yomcst.F90", from_line=167, to_line=177)
     def get_yomcst_parameters(self) -> YomcstParameters:
-        return self._initialize_parameters(YomcstParameters)
+        return self._initialize_parameters(YomcstParameters)  # type: ignore[return-value]
 
     @ported_method(from_file="common/module/yoecldp.F90", from_line=242, to_line=370)
     def get_yrecldp_parameters(self) -> YrecldpParameters:
-        return self._initialize_parameters(
+        return self._initialize_parameters(  # type: ignore[return-value]
             YrecldpParameters, get_parameter_name=lambda attr_name: "YRECLDP_" + attr_name
         )
 
-    def _get_field_1d(self, ds: h5py.Dataset, name: str) -> np.ndarray:
+    def _get_field_1d(self, ds: h5py.Dataset, name: str) -> NDArray:
         nlon = self.get_nlon()
         nlev = self.get_nlev()
         if nlon <= ds.shape[0] <= nlon + 1 or nlev <= ds.shape[0] <= nlev + 1:
-            return ds[:]
+            return ds[:]  # type: ignore[no-any-return]
         else:
             raise RuntimeError(
                 f"The field `{name}` is expected to have shape ({nlon}(+1),) or "
                 f"({nlev}(+1),), but has shape {ds.shape}."
             )
 
-    def _get_field_2d(self, ds, name):
+    def _get_field_2d(self, ds: h5py.Dataset, name: str) -> NDArray:
         nlon = self.get_nlon()
         nlev = self.get_nlev()
         if nlon <= ds.shape[0] <= nlon + 1 and nlev <= ds.shape[1] <= nlev + 1:
-            return ds[...]
+            return ds[...]  # type: ignore[no-any-return]
         elif nlon <= ds.shape[1] <= nlon + 1 and nlev <= ds.shape[0] <= nlev + 1:
             return np.transpose(ds[...])
         else:
@@ -275,7 +276,7 @@ class HDF5Reader:
                 f"but has shape {ds.shape}."
             )
 
-    def _get_field_3d(self, ds, name):
+    def _get_field_3d(self, ds: h5py.Dataset, name: str) -> NDArray:
         nlon = self.get_nlon()
         nlev = self.get_nlev()
 
@@ -301,8 +302,8 @@ class HDF5Reader:
         self,
         parameter_cls: Type[BaseModel],
         get_parameter_name: Optional[Callable[[str], str]] = None,
-    ):
-        init_dict = {}
+    ) -> BaseModel:
+        init_dict: Dict[str, Union[bool, float, int]] = {}
         for attr_name, metadata in parameter_cls.schema()["properties"].items():
             param_name = (
                 get_parameter_name(attr_name) if get_parameter_name is not None else attr_name
@@ -319,10 +320,10 @@ class HDF5Reader:
         return parameter_cls(**init_dict)
 
     def _get_parameter_b(self, name: str) -> bool:
-        return self.data_types.bool(self.f.get(name, [True])[0])
+        return self.data_types.bool(self.f.get(name, [True])[0])  # type: ignore[no-any-return]
 
     def _get_parameter_f(self, name: str) -> float:
-        return self.data_types.float(self.f.get(name, [0.0])[0])
+        return self.data_types.float(self.f.get(name, [0.0])[0])  # type: ignore[no-any-return]
 
     def _get_parameter_i(self, name: str) -> int:
-        return self.data_types.int(self.f.get(name, [0])[0])
+        return self.data_types.int(self.f.get(name, [0])[0])  # type: ignore[no-any-return]

@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from gt4py.cartesian.gtscript import Field, IJ, K
 
-from cloudsc4py.physics.stencils.cuadjtq import f_cuadjtq
-from cloudsc4py.physics.stencils.fccld import f_fokoop
-from cloudsc4py.physics.stencils.fcttre import (
+from cloudsc4py.physics._stencils.cuadjtq import f_cuadjtq
+from cloudsc4py.physics._stencils.fccld import f_fokoop
+from cloudsc4py.physics._stencils.fcttre import (
     f_foealfa,
     f_foedelta,
     f_foedem,
@@ -24,7 +24,7 @@ from cloudsc4py.physics.stencils.fcttre import (
     f_foeewm,
     f_foeldcpm,
 )
-from cloudsc4py.physics.stencils.helpers import f_helper_0, f_helper_1
+from cloudsc4py.physics._stencils.helpers import f_helper_0, f_helper_1
 from ifs_physics_common.framework.stencil import stencil_collection
 
 

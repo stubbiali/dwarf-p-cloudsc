@@ -9,9 +9,9 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-import cloudsc4py.physics.stencils.cloudsc
-import cloudsc4py.physics.stencils.cloudsc_split
-import cloudsc4py.physics.stencils.cuadjtq
-import cloudsc4py.physics.stencils.fccld
-import cloudsc4py.physics.stencils.fcttre
-import cloudsc4py.physics.stencils.helpers
+import cloudsc4py.physics._stencils.cloudsc
+import cloudsc4py.physics._stencils.cloudsc_split
+import cloudsc4py.physics._stencils.cuadjtq
+import cloudsc4py.physics._stencils.fccld
+import cloudsc4py.physics._stencils.fcttre
+import cloudsc4py.physics._stencils.helpers
