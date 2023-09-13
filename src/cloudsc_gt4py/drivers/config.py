@@ -14,7 +14,7 @@ import numpy as np
 from os.path import dirname, join, normpath, splitext
 from pydantic import BaseModel, validator
 import socket
-from typing import Literal, Optional
+from typing import Any, Dict, Literal, Optional
 
 from ifs_physics_common.framework.config import DataTypes, GT4PyConfig
 
@@ -23,7 +23,7 @@ class IOConfig(BaseModel):
     """Gathers options for I/O."""
 
     output_csv_file: Optional[str]
-    host_name: Optional[str]
+    host_name: str
 
     @validator("output_csv_file")
     @classmethod
@@ -39,30 +39,30 @@ class IOConfig(BaseModel):
         else:
             return basename + ".csv"
 
-    @validator("host_name")
+    @validator("host_name", pre=True)
     @classmethod
     def set_host_name(cls, v: Optional[str]) -> str:
         return v or socket.gethostname()
 
-    def with_host_name(self, host_name: str) -> IOConfig:
+    def with_host_name(self, host_name: Optional[str]) -> IOConfig:
         args = self.dict()
         args["host_name"] = host_name
         return IOConfig(**args)
 
-    def with_output_csv_file(self, output_csv_file: str) -> IOConfig:
+    def with_output_csv_file(self, output_csv_file: Optional[str]) -> IOConfig:
         args = self.dict()
         args["output_csv_file"] = output_csv_file
         return IOConfig(**args)
 
 
-default_io_config = IOConfig(output_file=None, host_name=None)
+default_io_config = IOConfig(output_csv_file=None, host_name="")
 
 
 class PythonConfig(BaseModel):
     """Gathers options controlling execution of Python/GT4Py code."""
 
     # domain
-    num_cols: Optional[int]
+    num_cols: int
 
     # validation
     enable_validation: bool
@@ -80,7 +80,7 @@ class PythonConfig(BaseModel):
 
     @validator("gt4py_config")
     @classmethod
-    def add_dtypes(cls, v, values) -> GT4PyConfig:
+    def add_dtypes(cls, v: GT4PyConfig, values: Dict[str, Any]) -> GT4PyConfig:
         return v.with_dtypes(values["data_types"])
 
     def with_backend(self, backend: Optional[str]) -> PythonConfig:

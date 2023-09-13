@@ -14,23 +14,27 @@ import click
 import csv
 import datetime
 import os
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from cloudsc4py.physics.cloudsc_split import Cloudsc
 
-from config import default_python_config, default_io_config
-from run import core
+if TYPE_CHECKING:
+    from typing import Literal, Optional
+
+    from .config import default_python_config, default_io_config
+    from .run import core
+else:
+    from config import default_python_config, default_io_config
+    from run import core
 
 
 @click.command()
 @click.option(
     "--backend",
     type=str,
-    default=None,
-    help=(
-        "GT4Py backend (options: cuda, dace:cpu, dace:gpu, gt:cpu_ifirst, gt:cpu_kfirst, gt:gpu, "
-        "numpy; default: numpy)."
-    ),
+    default="numpy",
+    help="GT4Py backend (options: cuda, dace:cpu, dace:gpu, gt:cpu_ifirst, gt:cpu_kfirst, gt:gpu, "
+    "numpy; default: numpy).",
 )
 @click.option(
     "--enable-checks/--disable-checks",
@@ -46,7 +50,7 @@ from run import core
     default=True,
     help="Enable/disable data validation (default: enabled).",
 )
-@click.option("--num-cols", type=int, default=None, help="Number of domain columns (default: 1).")
+@click.option("--num-cols", type=int, default=1, help="Number of domain columns (default: 1).")
 @click.option("--num-runs", type=int, default=1, help="Number of executions (default: 1).")
 @click.option(
     "--precision",
@@ -68,12 +72,12 @@ from run import core
     help="Path to the CSV file where writing performance counters for each stencil (optional).",
 )
 def main(
-    backend: Optional[str],
+    backend: str,
     enable_checks: bool,
     enable_validation: bool,
-    num_cols: Optional[int],
-    num_runs: Optional[int],
-    precision: str,
+    num_cols: int,
+    num_runs: int,
+    precision: Literal["double", "single"],
     host_alias: Optional[str],
     output_csv_file: Optional[str],
     output_csv_file_stencils: Optional[str],

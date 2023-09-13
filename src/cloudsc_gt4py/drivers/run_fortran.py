@@ -9,13 +9,20 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
+from __future__ import annotations
 import click
 import os
 import subprocess
-from typing import Optional
+from typing import TYPE_CHECKING
 
-from config import FortranConfig, IOConfig, default_fortran_config, default_io_config
-from utils import print_performance, to_csv
+if TYPE_CHECKING:
+    from typing import Literal, Optional
+
+    from .config import FortranConfig, IOConfig, default_fortran_config, default_io_config
+    from .utils import print_performance, to_csv
+else:
+    from config import FortranConfig, IOConfig, default_fortran_config, default_io_config
+    from utils import print_performance, to_csv
 
 
 def core(config: FortranConfig, io_config: IOConfig) -> None:
@@ -103,7 +110,7 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
 
 def _main(
     build_dir: str,
-    precision: str,
+    precision: Literal["double", "single"],
     variant: str,
     nproma: int,
     num_cols: int,
@@ -152,10 +159,8 @@ def _main(
     "--num-threads",
     type=int,
     default=1,
-    help=(
-        "Number of threads (recommended: 24 on Piz Daint's CPUs, 128 on MLux's CPUs, 1 on GPUs; "
-        "default: 1)."
-    ),
+    help="Number of threads (recommended: 24 on Piz Daint's CPUs, 128 on MLux's CPUs, 1 on GPUs; "
+    "default: 1).",
 )
 @click.option("--host-alias", type=str, default=None, help="Name of the host machine (optional).")
 @click.option(
@@ -166,7 +171,7 @@ def _main(
 )
 def main(
     build_dir: str,
-    precision: str,
+    precision: Literal["double", "single"],
     variant: str,
     nproma: int,
     num_cols: int,

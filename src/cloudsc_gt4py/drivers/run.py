@@ -14,7 +14,7 @@ import click
 import csv
 import datetime
 import os
-from typing import Optional, Type
+from typing import TYPE_CHECKING
 
 from cloudsc4py.physics.cloudsc import Cloudsc
 from cloudsc4py.initialization.reference import get_reference_tendencies, get_reference_diagnostics
@@ -24,8 +24,14 @@ from ifs_physics_common.framework.grid import ComputationalGrid
 from ifs_physics_common.utils.timing import timing
 from ifs_physics_common.utils.validation import validate
 
-from config import PythonConfig, IOConfig, default_python_config, default_io_config
-from utils import print_performance, to_csv
+if TYPE_CHECKING:
+    from typing import Literal, Optional, Type
+
+    from .config import PythonConfig, IOConfig, default_python_config, default_io_config
+    from .utils import print_performance, to_csv
+else:
+    from config import PythonConfig, IOConfig, default_python_config, default_io_config
+    from utils import print_performance, to_csv
 
 
 def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
@@ -112,11 +118,9 @@ def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
 @click.option(
     "--backend",
     type=str,
-    default=None,
-    help=(
-        "GT4Py backend (options: cuda, dace:cpu, dace:gpu, gt:cpu_ifirst, gt:cpu_kfirst, gt:gpu, "
-        "numpy; default: numpy)."
-    ),
+    default="numpy",
+    help="GT4Py backend (options: cuda, dace:cpu, dace:gpu, gt:cpu_ifirst, gt:cpu_kfirst, gt:gpu, "
+    "numpy; default: numpy).",
 )
 @click.option(
     "--enable-checks/--disable-checks",
@@ -132,7 +136,7 @@ def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
     default=True,
     help="Enable/disable data validation (default: enabled).",
 )
-@click.option("--num-cols", type=int, default=None, help="Number of domain columns (default: 1).")
+@click.option("--num-cols", type=int, default=1, help="Number of domain columns (default: 1).")
 @click.option("--num-runs", type=int, default=1, help="Number of executions (default: 1).")
 @click.option(
     "--precision",
@@ -154,12 +158,12 @@ def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:
     help="Path to the CSV file where writing performance counters for each stencil (optional).",
 )
 def main(
-    backend: Optional[str],
+    backend: str,
     enable_checks: bool,
     enable_validation: bool,
-    num_cols: Optional[int],
-    num_runs: Optional[int],
-    precision: str,
+    num_cols: int,
+    num_runs: int,
+    precision: Literal["double", "single"],
     host_alias: Optional[str],
     output_csv_file: Optional[str],
     output_csv_file_stencils: Optional[str],

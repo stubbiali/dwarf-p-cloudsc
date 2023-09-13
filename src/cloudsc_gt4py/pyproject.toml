@@ -98,5 +98,8 @@ ignore_missing_imports = true
 [tool.setuptools]
 platforms = ['Linux', 'Mac']
 
+[tool.setuptools.package-data]
+'cloudsc4py' = ['py.typed']
+
 [tool.setuptools.packages]
 find = {namespaces = false, where = ['src']}
