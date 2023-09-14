@@ -23,7 +23,6 @@ dependencies = [
     'ifs_physics_common @ git+https://github.com/stubbiali/ifs-physics-common.git@main',
     'numpy>=1.21',
     'pydantic>=1.9',
-    'sympl @ git+https://github.com/stubbiali/sympl.git@oop'
 ]
 description = 'GT4Py-based implementation of the CLOUDSC dwarf.'
 keywords = [
@@ -89,10 +88,6 @@ warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
 module = 'h5py'
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = 'sympl.*'
 ignore_missing_imports = true
 
 [tool.setuptools]

@@ -18,9 +18,7 @@ from ifs_physics_common.utils.numpyx import assign
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from sympl._core.typingx import DataArray
-
-    from ifs_physics_common.utils.typingx import ArrayLike
+    from ifs_physics_common.utils.typingx import ArrayLike, DataArray
 
 
 def initialize_storage_2d(storage: ArrayLike, buffer: NDArray) -> None:

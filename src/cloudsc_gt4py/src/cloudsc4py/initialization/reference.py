@@ -21,11 +21,10 @@ from ifs_physics_common.framework.storage import allocate_data_array
 if TYPE_CHECKING:
     from typing import Literal, Tuple
 
-    from sympl._core.typingx import DataArray, DataArrayDict
-
     from cloudsc4py.utils.iox import HDF5Reader
     from ifs_physics_common.framework.config import GT4PyConfig
     from ifs_physics_common.framework.grid import ComputationalGrid, DimSymbol
+    from ifs_physics_common.utils.typingx import DataArray, DataArrayDict
 
 
 def allocate_tendencies(

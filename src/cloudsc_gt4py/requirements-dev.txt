@@ -91,7 +91,7 @@ requests==2.31.0          # via dace
 scipy==1.11.2             # via sympl
 six==1.16.0               # via asttokens, astunparse, python-dateutil
 stack-data==0.6.2         # via ipython
-sympl @ git+https://github.com/stubbiali/sympl.git@oop  # via cloudsc4py (pyproject.toml), ifs-physics-common
+sympl @ git+https://github.com/stubbiali/sympl.git@oop  # via ifs-physics-common
 sympy==1.12               # via dace, gt4py
 tabulate==0.9.0           # via gt4py
 tomli==2.0.1              # via black, ipdb, mypy
