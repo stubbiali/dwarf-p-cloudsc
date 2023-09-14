@@ -21,17 +21,18 @@ from cloudsc4py.initialization.reference import get_reference_tendencies, get_re
 from cloudsc4py.initialization.state import get_state
 from cloudsc4py.utils.iox import HDF5Reader
 from ifs_physics_common.framework.grid import ComputationalGrid
+from ifs_physics_common.utils.output import print_performance, to_csv
 from ifs_physics_common.utils.timing import timing
 from ifs_physics_common.utils.validation import validate
 
 if TYPE_CHECKING:
     from typing import Literal, Optional, Type
 
-    from .config import PythonConfig, IOConfig, default_python_config, default_io_config
-    from .utils import print_performance, to_csv
+    from ifs_physics_common.framework.config import IOConfig, PythonConfig
+
+    from .config import default_python_config, default_io_config
 else:
-    from config import PythonConfig, IOConfig, default_python_config, default_io_config
-    from utils import print_performance, to_csv
+    from config import default_python_config, default_io_config
 
 
 def core(config: PythonConfig, io_config: IOConfig, cloudsc_cls: Type) -> None:

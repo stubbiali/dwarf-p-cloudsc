@@ -15,14 +15,16 @@ import os
 import subprocess
 from typing import TYPE_CHECKING
 
+from ifs_physics_common.utils.output import print_performance, to_csv
+
 if TYPE_CHECKING:
     from typing import Literal, Optional
 
-    from .config import FortranConfig, IOConfig, default_fortran_config, default_io_config
-    from .utils import print_performance, to_csv
+    from ifs_physics_common.framework.config import FortranConfig, IOConfig
+
+    from .config import default_fortran_config, default_io_config
 else:
-    from config import FortranConfig, IOConfig, default_fortran_config, default_io_config
-    from utils import print_performance, to_csv
+    from config import default_fortran_config, default_io_config
 
 
 def core(config: FortranConfig, io_config: IOConfig) -> None:
