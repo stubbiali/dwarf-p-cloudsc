@@ -11,12 +11,10 @@
 
 from __future__ import annotations
 import click
-import csv
-import datetime
-import os
 from typing import TYPE_CHECKING
 
 from cloudsc4py.physics.cloudsc_split import Cloudsc
+from ifs_physics_common.utils.output import write_stencils_performance_to_csv
 
 if TYPE_CHECKING:
     from typing import Literal, Optional
@@ -99,41 +97,17 @@ def main(
     core(config, io_config, cloudsc_cls=Cloudsc)
 
     if output_csv_file_stencils is not None:
-        cloudsc_tendencies_call_time = None
-        cloudsc_fluxes_call_time = None
-        for key, value in config.gt4py_config.exec_info.items():
-            if "tendencies" in key:
-                cloudsc_tendencies_call_time = value["total_call_time"] * 1000 / config.num_runs
-            elif "fluxes" in key:
-                cloudsc_fluxes_call_time = value["total_call_time"] * 1000 / config.num_runs
-
-        if not os.path.exists(output_csv_file_stencils):
-            with open(output_csv_file_stencils, "w") as f:
-                writer = csv.writer(f, delimiter=",")
-                writer.writerow(
-                    (
-                        "date",
-                        "host",
-                        "backend",
-                        "num_cols",
-                        "num_runs",
-                        "cloudsc_tendencies",
-                        "cloudsc_fluxes",
-                    )
-                )
-        with open(output_csv_file_stencils, "a") as f:
-            writer = csv.writer(f, delimiter=",")
-            writer.writerow(
-                (
-                    datetime.date.today().strftime("%Y%m%d"),
-                    io_config.host_name,
-                    config.gt4py_config.backend,
-                    config.num_cols,
-                    config.num_runs,
-                    cloudsc_tendencies_call_time,
-                    cloudsc_fluxes_call_time,
-                )
-            )
+        write_stencils_performance_to_csv(
+            output_csv_file_stencils,
+            io_config.host_name,
+            config.precision,
+            config.gt4py_config.backend,
+            config.num_cols,
+            config.num_threads,
+            config.num_runs,
+            config.gt4py_config.exec_info,
+            key_patterns=["fluxes", "tendencies"],
+        )
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ import os
 import subprocess
 from typing import TYPE_CHECKING
 
-from ifs_physics_common.utils.output import print_performance, to_csv
+from ifs_physics_common.utils.output import print_performance, write_performance_to_csv
 
 if TYPE_CHECKING:
     from typing import Literal, Optional
@@ -94,7 +94,7 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
     )
 
     if io_config.output_csv_file is not None:
-        to_csv(
+        write_performance_to_csv(
             io_config.output_csv_file,
             io_config.host_name,
             config.precision,
