@@ -8,10 +8,10 @@ from ifs_physics_common.utils.numpyx import assign
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from ifs_physics_common.utils.typingx import ArrayLike, DataArray
+    from ifs_physics_common.utils.typingx import DataArray, NDArrayLike
 
 
-def initialize_storage_2d(storage: ArrayLike, buffer: NDArray) -> None:
+def initialize_storage_2d(storage: NDArrayLike, buffer: NDArray) -> None:
     ni = storage.shape[0]
     mi = buffer.size
     nb = ni // mi
@@ -20,7 +20,7 @@ def initialize_storage_2d(storage: ArrayLike, buffer: NDArray) -> None:
     assign(storage[nb * mi :, 0:1], buffer[: ni - nb * mi, np.newaxis])
 
 
-def initialize_storage_3d(storage: ArrayLike, buffer: NDArray) -> None:
+def initialize_storage_3d(storage: NDArrayLike, buffer: NDArray) -> None:
     ni, _, nk = storage.shape
     mi, mk = buffer.shape
     lk = min(nk, mk)
