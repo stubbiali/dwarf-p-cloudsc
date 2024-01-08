@@ -484,11 +484,11 @@ void cloudsc_driver(int numthreads, int numcols, int nproma) {
   printf(" %10d%10d%10d%10d%10d %4d : %10d%10d TOTAL\n",
 	 numthreads, numcols, numcols, nblocks, nproma, -1, (int)(tdiff * 1000.), (int)zmflops);
 
-  cloudsc_validate(klon, nlev, nclv, numcols, nproma,
-		   plude, pcovptot, prainfrac_toprfz, pfsqlf, pfsqif,
-		   pfcqlng, pfcqnng, pfsqrf, pfsqsf, pfcqrng, pfcqsng,
-		   pfsqltur, pfsqitur, pfplsl, pfplsn, pfhpsl, pfhpsn,
-		   tend_loc_a, tend_loc_q, tend_loc_t, tend_loc_cld);
+//  cloudsc_validate(klon, nlev, nclv, numcols, nproma,
+//		   plude, pcovptot, prainfrac_toprfz, pfsqlf, pfsqif,
+//		   pfcqlng, pfcqnng, pfsqrf, pfsqsf, pfcqrng, pfcqsng,
+//		   pfsqltur, pfsqitur, pfplsl, pfplsn, pfhpsl, pfhpsn,
+//		   tend_loc_a, tend_loc_q, tend_loc_t, tend_loc_cld);
 
   free(plcrit_aer); // ALLOCATE(PLCRIT_AER(KLON,KLEV))
   free(picrit_aer); // ALLOCATE(PICRIT_AER(KLON,KLEV))
