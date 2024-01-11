@@ -22,7 +22,8 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
         os.path.dirname(__file__), config.build_dir, f"bin/dwarf-cloudsc-{config.variant}"
     )
     if not os.path.exists(executable):
-        raise RuntimeError(f"The executable `{executable}` does not exist.")
+        print(f"The executable `{executable}` does not exist.", flush=True)
+        return
 
     # warm-up cache
     out = subprocess.run(
@@ -51,7 +52,14 @@ def core(config: FortranConfig, io_config: IOConfig) -> None:
             capture_output=True,
         )
 
-        if config.variant in ("cuda", "cuda-hoist", "cuda-k-caching"):
+        if config.variant in (
+            "c-cuda",
+            "c-cuda-hoist",
+            "c-cuda-k-caching",
+            "hip",
+            "hip-hoist",
+            "hip-k-caching",
+        ):
             x = out.stdout.decode("utf-8").split("\n")[2]
             y = x.split(" ")
             z = [c for c in y if c != ""]
