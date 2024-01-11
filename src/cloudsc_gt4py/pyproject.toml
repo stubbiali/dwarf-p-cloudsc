@@ -18,7 +18,7 @@ classifiers = [
 ]
 dependencies = [
     'click>=8.0',
-    'gt4py[dace] @ git+https://github.com/GridTools/gt4py.git@main',
+    'gt4py[dace] @ git+https://github.com/stubbiali/gt4py.git@cloudsc',
     'h5py>=3.0',
     'ifs_physics_common @ git+https://github.com/stubbiali/ifs-physics-common.git@main',
     'numpy>=1.21',
