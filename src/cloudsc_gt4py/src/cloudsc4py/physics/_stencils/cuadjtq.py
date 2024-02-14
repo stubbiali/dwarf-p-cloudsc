@@ -20,7 +20,7 @@ def f_cuadjtq_5(qp, qsmix, t):
     return qsmix, t
 
 
-@ported_function(from_file="cloudsc_fortran/cloudsc2.F90", from_line=1297, to_line=1314)
+@ported_function(from_file="cloudsc_fortran/cloudsc.F90", from_line=1297, to_line=1314)
 @function_collection("f_cuadjtq")
 @gtscript.function
 def f_cuadjtq(ap, qsmix, t):
