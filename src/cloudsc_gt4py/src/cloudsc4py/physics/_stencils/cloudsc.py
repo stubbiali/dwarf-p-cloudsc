@@ -1383,7 +1383,7 @@ def cloudsc(
                 lo1 = covpclr > EPSEC and qs > EPSEC and qe < rh * qsice
                 if lo1:
                     # calculate local precipitation (kg/kg)
-                    preclr = qsfg / tmp_covptot[0, 0]
+                    preclr = qs / tmp_covptot[0, 0]
                     vpice = f_foeeice(t) * RV / RD
 
                     # particle size distribution
