@@ -79,7 +79,7 @@ Balthasar Reuter (balthasar.reuter@ecmwf.int)
     C version of CLOUDSC including loop fusion and temporary local 
     array demotion.  
 - **dwarf-cloudsc-gpu-scc-field**: GPU-enabled and optimized version of
-  CLOUDSC that uses the SCC loop layout, and uses [FIELD API](https://git.ecmwf.int/projects/RDX/repos/field_api/browse) (a Fortran library purpose-built for IFS data-structures that facilitates the
+  CLOUDSC that uses the SCC loop layout, and uses [FIELD API](https://github.com/ecmwf-ifs/field_api) (a Fortran library purpose-built for IFS data-structures that facilitates the
   creation and management of field objects in scientific code) to perform device offload 
   and copyback. The intent is to demonstrate the explicit use of pinned host memory to speed-up 
   data transfers, as provided by the shipped prototype implmentation, and 
@@ -96,6 +96,9 @@ Balthasar Reuter (balthasar.reuter@ecmwf.int)
   minor modifications (i.e. derived types/global paramters handling).
   Turned off by default, activate at the build stage with 
   `--cloudsc-fortran-pyiface=ON`.
+- **dwarf-cloudsc-fortran-atlas**: A version of **dwarf-cloudsc-fortran** which uses the [Atlas library](https://github.com/ecmwf/atlas) 
+  and its Field and FieldSet data stuctures. There are two storage settings for variables. If the environment variable
+  CLOUDSC_ATLAS_MULTIFIELD is "0", "OFF", or "FALSE", the variables are managed as atlas::FieldSet, which is an array of atlas::Fields. For other values of CLOUDSC_ATLAS_MULTIFIELD, a batching of variables is used as (BLK_IDX, LEV, VAR_ID, BLK_ID).
   
 
 ## Download and Installation
@@ -227,6 +230,22 @@ Preliminary results for CLOUDSC have been generated for A64FX CPUs on
 Isambard. A set of arch and toolchain files and detailed installation
 and run instructions are provided
 [here](https://confluence.ecmwf.int/display/~nabr/3rd+Isambard+Hackathon).
+
+### SYCL version of CLOUDSC
+
+A preliminary SYCL code variant has been added and tested with a custom
+DPCPP install on ECMWF's AC partition. To build this, please use the
+SYCL-specific environment setups:
+
+```
+./cloudsc-bundle build --clean --build-dir=build-sycl --with-gpu --with-sycl --with-serialbox --arch=arch/ecmwf/hpc2020/intel-sycl/2021.4.0
+
+# Then run with
+cd build-sycl && . env.sh
+./bin/dwarf-cloudsc-scc-sycl 1 240000 128
+./bin/dwarf-cloudsc-scc-hoist-sycl 1 240000 128
+./bin/dwarf-cloudsc-scc-k-caching-sycl 1 240000 128
+```
 
 ## Running and testing
 

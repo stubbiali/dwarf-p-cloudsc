@@ -9,25 +9,22 @@
  */
 
 #include "cloudsc_driver.h"
+#include "cloudsc_c_k_caching.kernel"
 
 #include <omp.h>
 #include "mycpu.h"
-
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-   if (code != cudaSuccess)
-   {
-      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
-   }
-}
+#include <CL/sycl.hpp>
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 void cloudsc_driver(int numthreads, int numcols, int nproma) {
 
+  cl::sycl::default_selector device_select;
+  cl::sycl::queue q( device_select );
+
+  printf("Running on %s\n", q.get_device().get_info<cl::sycl::info::device::name>().c_str());
+	
   double *tend_tmp_u;
   double *tend_tmp_v;
   double *tend_tmp_t;
@@ -273,59 +270,60 @@ void cloudsc_driver(int numthreads, int numcols, int nproma) {
   double *d_pfhpsn;
   // end device declarations
 
-  cudaMalloc(&d_plcrit_aer, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_picrit_aer, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pre_ice, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pccn, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pnice, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pt, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pq, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_tend_loc_t, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_tend_loc_q, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_tend_loc_a, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_tend_loc_cld, sizeof(double) * nblocks*nlev*nproma*nclv);
-  cudaMalloc(&d_tend_tmp_t, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_tend_tmp_q, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_tend_tmp_a, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_tend_tmp_cld, sizeof(double) * nblocks*nlev*nproma*nclv);
-  cudaMalloc(&d_pvfa, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pvfl, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pvfi, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pdyna, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pdynl, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pdyni, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_phrsw, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_phrlw, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pvervel, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pap, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_paph, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_plsm, sizeof(double) * nblocks*nproma);
-  cudaMalloc(&d_ktype, sizeof(int) * nblocks*nproma);
-  cudaMalloc(&d_plu, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_plude, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_psnde, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pmfu, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pmfd, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pa, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_pclv, sizeof(double) * nblocks*nlev*nproma*nclv);
-  cudaMalloc(&d_psupsat, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_yrecldp, sizeof(struct TECLDP));
-  cudaMalloc(&d_pcovptot, sizeof(double) * nblocks*nlev*nproma);
-  cudaMalloc(&d_prainfrac_toprfz, sizeof(double) * nblocks*nproma);
-  cudaMalloc(&d_pfsqlf, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfsqif, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfcqnng, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfcqlng, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfsqrf, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfsqsf, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfcqrng, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfcqsng, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfsqltur, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfsqitur, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfplsl, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfplsn, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfhpsl, sizeof(double) * nblocks*(nlev+1)*nproma);
-  cudaMalloc(&d_pfhpsn, sizeof(double) * nblocks*(nlev+1)*nproma);
+
+  d_plcrit_aer = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_picrit_aer = cl::sycl::malloc_device<double>( nblocks*nlev*nproma, q);
+  d_pre_ice = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pccn = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pnice = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pt = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pq = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_tend_loc_t = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_tend_loc_q = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_tend_loc_a = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_tend_loc_cld = cl::sycl::malloc_device<double>(nblocks*nlev*nproma*nclv, q);
+  d_tend_tmp_t = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_tend_tmp_q = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_tend_tmp_a = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_tend_tmp_cld = cl::sycl::malloc_device<double>(nblocks*nlev*nproma*nclv, q);
+  d_pvfa = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pvfl = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pvfi = cl::sycl::malloc_device<double>(nblocks*nlev*nproma,q );
+  d_pdyna = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pdynl = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pdyni = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_phrsw = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_phrlw = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pvervel = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pap = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_paph = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_plsm = cl::sycl::malloc_device<double>(nblocks*nproma, q);
+  d_ktype = cl::sycl::malloc_device<int>(nblocks*nproma, q);
+  d_plu = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_plude = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_psnde = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pmfu = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pmfd = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pa = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_pclv = cl::sycl::malloc_device<double>(nblocks*nlev*nproma*nclv, q);
+  d_psupsat = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_yrecldp = (TECLDP*) cl::sycl::malloc_device( sizeof(TECLDP), q);
+  d_pcovptot = cl::sycl::malloc_device<double>(nblocks*nlev*nproma, q);
+  d_prainfrac_toprfz = cl::sycl::malloc_device<double>(nblocks*nproma, q);
+  d_pfsqlf = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfsqif = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfcqnng = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfcqlng = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfsqrf = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfsqsf = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfcqrng = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfcqsng = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfsqltur = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfsqitur = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfplsl = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfplsn = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfhpsl = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
+  d_pfhpsn = cl::sycl::malloc_device<double>(nblocks*(nlev+1)*nproma, q);
 
   load_state(klon, nlev, nclv, numcols, nproma, &ptsphy, plcrit_aer, picrit_aer,
 	     pre_ice, pccn, pnice, pt, pq,
@@ -341,117 +339,125 @@ void cloudsc_driver(int numthreads, int numcols, int nproma) {
              &rtice, &rticecu, &rtwat_rtice_r, &rtwat_rticecu_r,
              &rkoop1, &rkoop2 );
 
-  double t1 = omp_get_wtime();
-
   // host to device
-  cudaMemcpy(d_plcrit_aer, plcrit_aer, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_picrit_aer, picrit_aer, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pre_ice, pre_ice, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pccn, pccn, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pnice, pnice, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pt, pt, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pq, pq, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_tend_loc_t, tend_loc_t, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_tend_loc_q, tend_loc_q, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_tend_loc_a, tend_loc_a, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_tend_loc_cld, tend_loc_cld, sizeof(double) * nblocks*nlev*nproma*nclv, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_tend_tmp_t, tend_tmp_t, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_tend_tmp_q, tend_tmp_q, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_tend_tmp_a, tend_tmp_a, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_tend_tmp_cld, tend_tmp_cld, sizeof(double) * nblocks*nlev*nproma*nclv, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pvfa, pvfa, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pvfl, pvfl, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pvfi, pvfi, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pdyna, pdyna, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pdynl, pdynl, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pdyni, pdyni, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_phrsw, phrsw, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_phrlw, phrlw, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pvervel, pvervel, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pap, pap, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_paph, paph, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_plsm, plsm, sizeof(double) * nblocks*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_ktype, ktype, sizeof(int) * nblocks*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_plu, plu, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_plude, plude, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_psnde, psnde, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pmfu, pmfu, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pmfd, pmfd, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pa, pa, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_pclv, pclv, sizeof(double) * nblocks*nlev*nproma*nclv, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_psupsat, psupsat, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_yrecldp, yrecldp, sizeof(TECLDP), cudaMemcpyHostToDevice);
+  q.memcpy(d_plcrit_aer, plcrit_aer, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_picrit_aer, picrit_aer, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pre_ice, pre_ice, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pccn, pccn, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pnice, pnice, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pt, pt, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pq, pq, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_tend_loc_t, tend_loc_t, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_tend_loc_q, tend_loc_q, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_tend_loc_a, tend_loc_a, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_tend_loc_cld, tend_loc_cld, sizeof(double) * nblocks*nlev*nproma*nclv);
+  q.memcpy(d_tend_tmp_t, tend_tmp_t, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_tend_tmp_q, tend_tmp_q, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_tend_tmp_a, tend_tmp_a, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_tend_tmp_cld, tend_tmp_cld, sizeof(double) * nblocks*nlev*nproma*nclv);
+  q.memcpy(d_pvfa, pvfa, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pvfl, pvfl, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pvfi, pvfi, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pdyna, pdyna, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pdynl, pdynl, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pdyni, pdyni, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_phrsw, phrsw, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_phrlw, phrlw, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pvervel, pvervel, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pap, pap, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_paph, paph, sizeof(double) * nblocks*(nlev+1)*nproma);
+  q.memcpy(d_plsm, plsm, sizeof(double) * nblocks*nproma);
+  q.memcpy(d_ktype, ktype, sizeof(int) * nblocks*nproma);
+  q.memcpy(d_plu, plu, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_plude, plude, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_psnde, psnde, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pmfu, pmfu, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pmfd, pmfd, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pa, pa, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_pclv, pclv, sizeof(double) * nblocks*nlev*nproma*nclv);
+  q.memcpy(d_psupsat, psupsat, sizeof(double) * nblocks*nlev*nproma);
+  q.memcpy(d_yrecldp, yrecldp, sizeof(TECLDP));
+  q.wait();
   // end host to device
 
-  int b, icalls=0, igpc=numcols;
-  int coreid = mycpu();
-  int tid = omp_get_thread_num();
-  double start = omp_get_wtime();
+  double t1 = omp_get_wtime();
 
-  dim3 blockdim(nproma, 1, 1);
-  dim3 griddim(1, 1, ceil(((double)numcols) / ((double)nproma)));
-  int jkglo = 0;
-  int ibl = (jkglo - 1) / nproma + 1;
-  int icend = min(nproma, numcols - jkglo + 1);
+    int b, bsize, icalls=0, igpc=numcols;
+    int coreid = mycpu();
+    int tid = omp_get_thread_num();
+    double start = omp_get_wtime();
 
-  cloudsc_c<<<griddim, blockdim>>>(1, icend, nproma, ptsphy, d_pt, d_pq,
-  		d_tend_tmp_t, d_tend_tmp_q, d_tend_tmp_a, d_tend_tmp_cld,
-  		d_tend_loc_t, d_tend_loc_q, d_tend_loc_a, d_tend_loc_cld,
-  		d_pvfa, d_pvfl, d_pvfi,
-  		d_pdyna, d_pdynl, d_pdyni,
-  		d_phrsw, d_phrlw, d_pvervel,
-  		d_pap, d_paph, d_plsm, d_ktype,
-  		d_plu, d_plude, d_psnde, d_pmfu, d_pmfd,
-  		d_pa, d_pclv, d_psupsat,
-  		d_plcrit_aer, d_picrit_aer, d_pre_ice, d_pccn, d_pnice,
-  		d_pcovptot, d_prainfrac_toprfz, d_pfsqlf,
-  		d_pfsqif, d_pfcqnng, d_pfcqlng,
-  		d_pfsqrf, d_pfsqsf, d_pfcqrng,
-  		d_pfcqsng, d_pfsqltur, d_pfsqitur,
-  		d_pfplsl, d_pfplsn, d_pfhpsl, d_pfhpsn, d_yrecldp,
-  		nblocks, rg, rd, rcpd, retv, rlvtt, rlstt, rlmlt, rtt,
+    int jkglo = 0;
+    int ibl = (jkglo - 1) / nproma + 1;
+    int icend = min(nproma, numcols - jkglo + 1);
+
+
+    cl::sycl::range<1> global(numcols);
+    cl::sycl::range<1> local(nproma);
+
+    q.submit([&](cl::sycl::handler &h) {
+        h.parallel_for( cl::sycl::nd_range<1>( global, local), [=] (cl::sycl::nd_item<1> item_ct1) {			 
+
+    cloudsc_c(1, icend, nproma, ptsphy, d_pt, d_pq,
+    		d_tend_tmp_t, d_tend_tmp_q, d_tend_tmp_a, d_tend_tmp_cld,
+    		d_tend_loc_t, d_tend_loc_q, d_tend_loc_a, d_tend_loc_cld,
+    		d_pvfa, d_pvfl, d_pvfi,
+    		d_pdyna, d_pdynl, d_pdyni,
+    		d_phrsw, d_phrlw, d_pvervel,
+    		d_pap, d_paph, d_plsm, d_ktype,
+    		d_plu, d_plude, d_psnde, d_pmfu, d_pmfd,
+    		d_pa, d_pclv, d_psupsat,
+    		d_plcrit_aer, d_picrit_aer, d_pre_ice, d_pccn, d_pnice,
+    		d_pcovptot, d_prainfrac_toprfz, d_pfsqlf,
+    		d_pfsqif, d_pfcqnng, d_pfcqlng,
+    		d_pfsqrf, d_pfsqsf, d_pfcqrng,
+    		d_pfcqsng, d_pfsqltur, d_pfsqitur,
+    		d_pfplsl, d_pfplsn, d_pfhpsl, d_pfhpsn, d_yrecldp,
+    		nblocks, rg, rd, rcpd, retv, rlvtt, rlstt, rlmlt, rtt,
                 rv, r2es, r3les, r3ies, r4les, r4ies, r5les,
                 r5ies, r5alvcp, r5alscp, ralvdcp, ralsdcp, ralfdcp,
                 rtwat, rtice, rticecu, rtwat_rtice_r, rtwat_rticecu_r,
-                rkoop1, rkoop2);
+                rkoop1, rkoop2, item_ct1);
 
+	});
+    });
 
-  gpuErrchk( cudaPeekAtLastError() );
-  gpuErrchk( cudaDeviceSynchronize() );
+    q.wait();
 
-  double end = omp_get_wtime();
+    double end = omp_get_wtime();
 
-  // device to host
-  cudaMemcpy(tend_loc_t, d_tend_loc_t, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(tend_loc_q, d_tend_loc_q, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(tend_loc_a, d_tend_loc_a, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(tend_loc_cld, d_tend_loc_cld, sizeof(double) * nblocks*nlev*nproma*nclv, cudaMemcpyDeviceToHost);
-  cudaMemcpy(phrlw, d_phrlw, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(plude, d_plude, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(yrecldp, d_yrecldp, sizeof(TECLDP), cudaMemcpyDeviceToHost);
-  cudaMemcpy(pcovptot, d_pcovptot, sizeof(double) * nblocks*nlev*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(prainfrac_toprfz, d_prainfrac_toprfz, sizeof(double) * nblocks*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfsqlf, d_pfsqlf, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfsqif, d_pfsqif, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfcqnng, d_pfcqnng, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfcqlng, d_pfcqlng, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfsqrf, d_pfsqrf, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfsqsf, d_pfsqsf, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfcqrng, d_pfcqrng, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfcqsng, d_pfcqsng, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfsqltur, d_pfsqltur, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfsqitur, d_pfsqitur, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfplsl, d_pfplsl, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfplsn, d_pfplsn, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfhpsl, d_pfhpsl, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  cudaMemcpy(pfhpsn, d_pfhpsn, sizeof(double) * nblocks*(nlev+1)*nproma, cudaMemcpyDeviceToHost);
-  // end device to host
+    // device to host
+    q.memcpy(tend_loc_t, d_tend_loc_t, sizeof(double) * nblocks*nlev*nproma);
+    q.memcpy(tend_loc_q, d_tend_loc_q, sizeof(double) * nblocks*nlev*nproma);
+    q.memcpy(tend_loc_a, d_tend_loc_a, sizeof(double) * nblocks*nlev*nproma);
+    q.memcpy(tend_loc_cld, d_tend_loc_cld, sizeof(double) * nblocks*nlev*nproma*nclv);
+    q.memcpy(phrlw, d_phrlw, sizeof(double) * nblocks*nlev*nproma);
+    q.memcpy(plude, d_plude, sizeof(double) * nblocks*nlev*nproma);
+    q.memcpy(yrecldp, d_yrecldp, sizeof(TECLDP));
+    q.memcpy(pcovptot, d_pcovptot, sizeof(double) * nblocks*nlev*nproma);
+    q.memcpy(prainfrac_toprfz, d_prainfrac_toprfz, sizeof(double) * nblocks*nproma);
+    q.memcpy(pfsqlf, d_pfsqlf, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfsqif, d_pfsqif, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfcqnng, d_pfcqnng, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfcqlng, d_pfcqlng, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfsqrf, d_pfsqrf, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfsqsf, d_pfsqsf, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfcqrng, d_pfcqrng, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfcqsng, d_pfcqsng, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfsqltur, d_pfsqltur, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfsqitur, d_pfsqitur, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfplsl, d_pfplsl, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfplsn, d_pfplsn, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfhpsl, d_pfhpsl, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.memcpy(pfhpsn, d_pfhpsn, sizeof(double) * nblocks*(nlev+1)*nproma);
+    q.wait();
+    // end device to host
 
-  /* int msec = diff * 1000 / CLOCKS_PER_SEC; */
-  zinfo[0][tid] = end - start;
-  zinfo[1][tid] = (double) coreid;
-  zinfo[2][tid] = (double) icalls;
-  zinfo[3][tid] = (double) igpc;
+    /* int msec = diff * 1000 / CLOCKS_PER_SEC; */
+    zinfo[0][tid] = end - start;
+    zinfo[1][tid] = (double) coreid;
+    zinfo[2][tid] = (double) icalls;
+    zinfo[3][tid] = (double) igpc;
 
   double t2 = omp_get_wtime();
 
@@ -473,7 +479,7 @@ void cloudsc_driver(int numthreads, int numcols, int nproma) {
       zthrput = 0.0;
     }
     printf(" %10d%10d%10d%10d%10d %4d : %10d%10d%10d @ core#\n",
- 	   numthreads, numcols, igpc, icalls, nproma, t, (int)(tloc * 1000.), (int)zmflops, (int)zthrput);
+           numthreads, numcols, igpc, icalls, nproma, t, (int)(tloc * 1000.), (int)zmflops, (int)zthrput);
   }
   double tdiff = t2 - t1;
   zfrac = 1.0;
@@ -484,8 +490,8 @@ void cloudsc_driver(int numthreads, int numcols, int nproma) {
     zmflops = 0.0;
     zthrput = 0.0;
   }
-  printf(" %10d%10d%10d%10d%10d %4d : %10d%10d%10d TOTAL\n",
- 	 numthreads, numcols, numcols, nblocks, nproma, -1, (int)(tdiff * 1000.), (int)zmflops, (int)zthrput);
+  printf(" %10d%10d%10d%10d%10d %4d: %10d%10d%10d TOTAL\n",
+         numthreads, numcols, numcols, nblocks, nproma, -1, (int)(tdiff * 1000.), (int)zmflops, (int)zthrput);
 
   cloudsc_validate(klon, nlev, nclv, numcols, nproma,
 		   plude, pcovptot, prainfrac_toprfz, pfsqlf, pfsqif,
@@ -493,9 +499,9 @@ void cloudsc_driver(int numthreads, int numcols, int nproma) {
 		   pfsqltur, pfsqitur, pfplsl, pfplsn, pfhpsl, pfhpsn,
 		   tend_loc_a, tend_loc_q, tend_loc_t, tend_loc_cld);
 
-  free(plcrit_aer); // ALLOCATE(PLCRIT_AER(KLON,KLEV))
-  free(picrit_aer); // ALLOCATE(PICRIT_AER(KLON,KLEV))
-  free(pre_ice);    // ALLOCATE(PRE_ICE(KLON,KLEV))
+  free(plcrit_aer);
+  free(picrit_aer);
+  free(pre_ice);
   free(pccn);
   free(pnice);
   free(pt);
@@ -510,7 +516,7 @@ void cloudsc_driver(int numthreads, int numcols, int nproma) {
   free(phrlw);
   free(pvervel);
   free(pap);
-  free(paph); // ALLOCATE(PAPH(KLON,KLEV+1))
+  free(paph);
   free(plsm);
   free(ktype);
   free(plu);
@@ -552,59 +558,59 @@ void cloudsc_driver(int numthreads, int numcols, int nproma) {
   free(yrecldp);
 
   // free device
-  cudaFree(d_plcrit_aer);
-  cudaFree(d_picrit_aer);
-  cudaFree(d_pre_ice);
-  cudaFree(d_pccn);
-  cudaFree(d_pnice);
-  cudaFree(d_pt);
-  cudaFree(d_pq);
-  cudaFree(d_tend_loc_t);
-  cudaFree(d_tend_loc_q);
-  cudaFree(d_tend_loc_a);
-  cudaFree(d_tend_loc_cld);
-  cudaFree(d_tend_tmp_t);
-  cudaFree(d_tend_tmp_q);
-  cudaFree(d_tend_tmp_a);
-  cudaFree(d_tend_tmp_cld);
-  cudaFree(d_pvfa);
-  cudaFree(d_pvfl);
-  cudaFree(d_pvfi);
-  cudaFree(d_pdyna);
-  cudaFree(d_pdynl);
-  cudaFree(d_pdyni);
-  cudaFree(d_phrsw);
-  cudaFree(d_phrlw);
-  cudaFree(d_pvervel);
-  cudaFree(d_pap);
-  cudaFree(d_paph);
-  cudaFree(d_plsm);
-  cudaFree(d_ktype);
-  cudaFree(d_plu);
-  cudaFree(d_plude);
-  cudaFree(d_psnde);
-  cudaFree(d_pmfu);
-  cudaFree(d_pmfd);
-  cudaFree(d_pa);
-  cudaFree(d_pclv);
-  cudaFree(d_psupsat);
-  cudaFree(d_yrecldp);
-  cudaFree(d_pcovptot);
-  cudaFree(d_prainfrac_toprfz);
-  cudaFree(d_pfsqlf);
-  cudaFree(d_pfsqif);
-  cudaFree(d_pfcqnng);
-  cudaFree(d_pfcqlng);
-  cudaFree(d_pfsqrf);
-  cudaFree(d_pfsqsf);
-  cudaFree(d_pfcqrng);
-  cudaFree(d_pfcqsng);
-  cudaFree(d_pfsqltur);
-  cudaFree(d_pfsqitur);
-  cudaFree(d_pfplsl);
-  cudaFree(d_pfplsn);
-  cudaFree(d_pfhpsl);
-  cudaFree(d_pfhpsn);
+  cl::sycl::free(d_plcrit_aer, q);
+  cl::sycl::free(d_picrit_aer, q);
+  cl::sycl::free(d_pre_ice, q);
+  cl::sycl::free(d_pccn, q);
+  cl::sycl::free(d_pnice, q);
+  cl::sycl::free(d_pt, q);
+  cl::sycl::free(d_pq, q);
+  cl::sycl::free(d_tend_loc_t, q);
+  cl::sycl::free(d_tend_loc_q, q);
+  cl::sycl::free(d_tend_loc_a, q);
+  cl::sycl::free(d_tend_loc_cld, q);
+  cl::sycl::free(d_tend_tmp_t, q);
+  cl::sycl::free(d_tend_tmp_q, q);
+  cl::sycl::free(d_tend_tmp_a, q);
+  cl::sycl::free(d_tend_tmp_cld, q);
+  cl::sycl::free(d_pvfa, q);
+  cl::sycl::free(d_pvfl, q);
+  cl::sycl::free(d_pvfi, q);
+  cl::sycl::free(d_pdyna, q);
+  cl::sycl::free(d_pdynl, q);
+  cl::sycl::free(d_pdyni, q);
+  cl::sycl::free(d_phrsw, q);
+  cl::sycl::free(d_phrlw, q);
+  cl::sycl::free(d_pvervel, q);
+  cl::sycl::free(d_pap, q);
+  cl::sycl::free(d_paph, q);
+  cl::sycl::free(d_plsm, q);
+  cl::sycl::free(d_ktype, q);
+  cl::sycl::free(d_plu, q);
+  cl::sycl::free(d_plude, q);
+  cl::sycl::free(d_psnde, q);
+  cl::sycl::free(d_pmfu, q);
+  cl::sycl::free(d_pmfd, q);
+  cl::sycl::free(d_pa, q);
+  cl::sycl::free(d_pclv, q);
+  cl::sycl::free(d_psupsat, q);
+  cl::sycl::free(d_yrecldp, q);
+  cl::sycl::free(d_pcovptot, q);
+  cl::sycl::free(d_prainfrac_toprfz, q);
+  cl::sycl::free(d_pfsqlf, q);
+  cl::sycl::free(d_pfsqif, q);
+  cl::sycl::free(d_pfcqnng, q);
+  cl::sycl::free(d_pfcqlng, q);
+  cl::sycl::free(d_pfsqrf, q);
+  cl::sycl::free(d_pfsqsf, q);
+  cl::sycl::free(d_pfcqrng, q);
+  cl::sycl::free(d_pfcqsng, q);
+  cl::sycl::free(d_pfsqltur, q);
+  cl::sycl::free(d_pfsqitur, q);
+  cl::sycl::free(d_pfplsl, q);
+  cl::sycl::free(d_pfplsn, q);
+  cl::sycl::free(d_pfhpsl, q);
+  cl::sycl::free(d_pfhpsn, q);
   // end free device
 }
 

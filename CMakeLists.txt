@@ -70,6 +70,10 @@ if ( HAVE_HIP )
   find_package(hip REQUIRED)
 endif()
 
+ecbuild_add_option( FEATURE SYCL
+	DESCRIPTION "SYCL" DEFAULT OFF
+	REQUIRED_PACKAGES "IntelSYCL")
+
 ### OpenMP
 ecbuild_add_option( FEATURE OMP
     DESCRIPTION "OpenMP" DEFAULT ON
@@ -87,7 +91,7 @@ endif()
 ### HDF5
 ecbuild_add_option( FEATURE HDF5
     DESCRIPTION "Use HDF5 to read input and reference data"
-    REQUIRED_PACKAGES "HDF5 COMPONENTS Fortran"
+    REQUIRED_PACKAGES "HDF5 COMPONENTS Fortran C"
     DEFAULT ON )
 if( HAVE_HDF5 )
     list(APPEND CLOUDSC_DEFINITIONS HAVE_HDF5 )
@@ -117,8 +121,10 @@ ecbuild_find_package( NAME atlas )
 ecbuild_add_option( FEATURE SINGLE_PRECISION
     DESCRIPTION "Build CLOUDSC in single precision" DEFAULT OFF
 )
+set(prec dp)
 if( HAVE_SINGLE_PRECISION )
     list(APPEND CLOUDSC_DEFINITIONS SINGLE)
+    set(prec sp)
 endif()
 
 # build executables

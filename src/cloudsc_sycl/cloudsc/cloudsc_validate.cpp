@@ -12,15 +12,16 @@
 
 #include <float.h>
 #include <math.h>
+#include <limits>
+//#include <limits.h>
 
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#define max(a, b) (((a) > (b)) ? (a) : (b))
 
+#define min(a,b) (((a)<(b))?(a):(b))
 
 void print_error(const char *name, double zminval, double zmaxval, double zmaxerr,
 		 double zerrsum, double zsum, double zavgpgp, int ndim)
 {
-  double zrelerr, zeps = DBL_EPSILON;
+  double zrelerr, zeps = std::numeric_limits<double>::epsilon();
   int iopt = 0;
   if (zerrsum < zeps) {
     zrelerr = 0.0;
@@ -36,8 +37,8 @@ void print_error(const char *name, double zminval, double zmaxval, double zmaxer
   //-- If you get 4 exclamation marks next to your error output,
   //   then it is likely that some uninitialized variables exists or
   //   some other screw-up -- watch out this !!!!
-  char *clwarn;
-  clwarn = (zrelerr > 10.0 * zeps) ? " !!!!" : "     ";
+  //char *clwarn;
+  const char* clwarn = (zrelerr > 10.0 * zeps) ? " !!!!" : "     ";
   zrelerr = 100.0 * zrelerr;
 
   printf(" %+20s %dD%d %20.13le %20.13le %20.13le %20.13le %20.13le %s\n",
@@ -50,28 +51,28 @@ void validate_1d(const char *name, double * v_ref, double * v_field, int nlon, i
   /* Computes and prints errors in the "L2 norm sense" */
   int b, bsize, jk;
   double zminval, zmaxval, zdiff, zmaxerr, zerrsum, zsum, zrelerr, zavgpgp;
-  double (*field)[nlon] = (double (*)[nlon]) v_field;
-  double (*reference)[nlon] = (double (*)[nlon]) v_ref;
+  //double (*field)[nlon] = (double (*)[nlon]) v_field;
+  //double (*reference)[nlon] = (double (*)[nlon]) v_ref;
 
-  zminval = +DBL_MAX;
-  zmaxval = -DBL_MAX;
+  zminval = +std::numeric_limits<double>::max();
+  zmaxval = -std::numeric_limits<double>::max();
   zmaxerr = 0.0;
   zerrsum = 0.0;
   zsum = 0.0;
 
-  #pragma omp parallel for default(shared) private(b, bsize, jk)		\
-    reduction(min:zminval) reduction(max:zmaxval,zmaxerr) reduction(+:zerrsum,zsum)
+//  #pragma omp parallel for default(shared) private(b, bsize, jk)		\
+//    reduction(min:zminval) reduction(max:zmaxval,zmaxerr) reduction(+:zerrsum,zsum)
   for (b = 0; b < nblocks; b++) {
     bsize = min(nlon, ngptot - b*nlon);  // field block size
     for (jk = 0; jk < bsize; jk++) {
-      zminval = fmin(zminval, field[b][jk]);
-      zmaxval = fmax(zmaxval, field[b][jk]);
+      zminval = fmin(zminval, v_field[b*nlon+jk]);
+      zmaxval = fmax(zmaxval, v_field[b*nlon+jk]);
 
       // Difference against reference result in one-norm sense
-      zdiff = fabs(field[b][jk] - reference[b][jk]);
+      zdiff = fabs(v_field[b*nlon+jk] - v_ref[b*nlon+jk]);
       zmaxerr = fmax(zmaxerr, zdiff);
       zerrsum = zerrsum + zdiff;
-      zsum = zsum + abs(reference[b][jk]);
+      zsum = zsum + abs(v_ref[b*nlon+jk]);
     }
   }
   zavgpgp = zerrsum / (double) ngptot;
@@ -84,32 +85,34 @@ void validate_2d(const char *name, double *v_ref, double *v_field, int nlon, int
   /* Computes and prints errors in the "L2 norm sense" */
   int b, bsize, jl, jk;
   double zminval, zmaxval, zdiff, zmaxerr, zerrsum, zsum, zrelerr, zavgpgp;
-  double (*field)[nlev][nlon] = (double (*)[nlev][nlon]) v_field;
-  double (*reference)[nlev][nlon] = (double (*)[nlev][nlon]) v_ref;
+//  double (*field)[nlev][nlon] = (double (*)[nlev][nlon]) v_field;
+//  double (*reference)[nlev][nlon] = (double (*)[nlev][nlon]) v_ref;
 
-  zminval = +DBL_MAX;
-  zmaxval = -DBL_MAX;
+  zminval = +std::numeric_limits<double>::max();
+  zmaxval = -std::numeric_limits<double>::max();
   zmaxerr = 0.0;
   zerrsum = 0.0;
   zsum = 0.0;
 
-  #pragma omp parallel for default(shared) private(b, bsize, jl, jk) \
-    reduction(min:zminval) reduction(max:zmaxval,zmaxerr) reduction(+:zerrsum,zsum)
+//  #pragma omp parallel for default(shared) private(b, bsize, jl, jk) \
+//    reduction(min:zminval) reduction(max:zmaxval,zmaxerr) reduction(+:zerrsum,zsum)
+
   for (b = 0; b < nblocks; b++) {
     bsize = min(nlon, ngptot - b*nlon);  // field block size
     for (jl = 0; jl < nlev; jl++) {
       for (jk = 0; jk < bsize; jk++) {
-	zminval = fmin(zminval, field[b][jl][jk]);
-	zmaxval = fmax(zmaxval, field[b][jl][jk]);
+	zminval = fmin(zminval, v_field[b*nlev*nlon+jl*nlon+jk]);
+	zmaxval = fmax(zmaxval, v_field[b*nlev*nlon+jl*nlon+jk]);
 
 	// Difference against reference result in one-norm sense
-	zdiff = fabs(field[b][jl][jk] - reference[b][jl][jk]);
+	zdiff = fabs(v_field[b*nlev*nlon+jl*nlon+jk] - v_ref[b*nlev*nlon+jl*nlon+jk]);
 	zmaxerr = fmax(zmaxerr, zdiff);
 	zerrsum = zerrsum + zdiff;
-	zsum = zsum + abs(reference[b][jl][jk]);
+	zsum = zsum + abs(v_ref[b*nlev*nlon+jl*nlon+jk]);
       }
     }
   }
+
   zavgpgp = zerrsum / (double) ngptot;
   print_error(name, zminval, zmaxval, zmaxerr, zerrsum, zsum, zavgpgp, 2);
 }
@@ -121,30 +124,30 @@ void validate_3d(const char *name, double *v_ref, double *v_field, int nlon,
   /* Computes and prints errors in the "L2 norm sense" */
   int b, bsize, jl, jk, jm;
   double zminval, zmaxval, zdiff, zmaxerr, zerrsum, zsum, zrelerr, zavgpgp;
-  double (*field)[nclv][nlev][nlon] = (double (*)[nclv][nlev][nlon]) v_field;
-  double (*reference)[nclv][nlev][nlon] = (double (*)[nclv][nlev][nlon]) v_ref;
+//  double (*field)[nclv][nlev][nlon] = (double (*)[nclv][nlev][nlon]) v_field;
+//  double (*reference)[nclv][nlev][nlon] = (double (*)[nclv][nlev][nlon]) v_ref;
 
-  zminval = +DBL_MAX;
-  zmaxval = -DBL_MAX;
+  zminval = +std::numeric_limits<double>::max();
+  zmaxval = -std::numeric_limits<double>::max();
   zmaxerr = 0.0;
   zerrsum = 0.0;
   zsum = 0.0;
 
-  #pragma omp parallel for default(shared) private(b, bsize, jl, jk, jm) \
-    reduction(min:zminval) reduction(max:zmaxval,zmaxerr) reduction(+:zerrsum,zsum)
+//  #pragma omp parallel for default(shared) private(b, bsize, jl, jk, jm) \
+//    reduction(min:zminval) reduction(max:zmaxval,zmaxerr) reduction(+:zerrsum,zsum)
   for (b = 0; b < nblocks; b++) {
     bsize = min(nlon, ngptot - b*nlon);  // field block size
     for (jm = 0; jm < nclv; jm++) {
       for (jl = 0; jl < nlev; jl++) {
 	for (jk = 0; jk < bsize; jk++) {
-	  zminval = fmin(zminval, field[b][jm][jl][jk]);
-	  zmaxval = fmax(zmaxval, field[b][jm][jl][jk]);
+	  zminval = fmin(zminval, v_field[b*nclv*nlev*nlon+jm*nlev*nlon+jl*nlon+jk]);
+	  zmaxval = fmax(zmaxval, v_field[b*nclv*nlev*nlon+jm*nlev*nlon+jl*nlon+jk]);
 
 	  // Difference against reference result in one-norm sense
-	  zdiff = fabs(field[b][jm][jl][jk] - reference[b][jm][jl][jk]);
+	  zdiff = fabs(v_field[b*nclv*nlev*nlon+jm*nlev*nlon+jl*nlon+jk] - v_ref[b*nclv*nlev*nlon+jm*nlev*nlon+jl*nlon+jk]);
 	  zmaxerr = fmax(zmaxerr, zdiff);
 	  zerrsum = zerrsum + zdiff;
-	  zsum = zsum + abs(reference[b][jm][jl][jk]);
+	  zsum = zsum + abs(v_ref[b*nclv*nlev*nlon+jm*nlev*nlon+jl*nlon+jk]);
 	}
       }
     }
@@ -154,7 +157,7 @@ void validate_3d(const char *name, double *v_ref, double *v_field, int nlon,
 }
 
 
-void cloudsc_validate(const int nlon, const int nlev, const int nclv, const int ngptot, const int nproma,
+int cloudsc_validate(const int nlon, const int nlev, const int nclv, const int ngptot, const int nproma,
 		     double *plude, double *pcovptot, double *prainfrac_toprfz, double *pfsqlf, double *pfsqif,
 		     double *pfcqlng, double *pfcqnng, double *pfsqrf, double *pfsqsf, double *pfcqrng, double *pfcqsng,
 		     double *pfsqltur, double *pfsqitur, double *pfplsl, double *pfplsn, double *pfhpsl, double *pfhpsn,
@@ -236,5 +239,7 @@ void cloudsc_validate(const int nlon, const int nlev, const int nclv, const int 
   free(ref_tend_loc_q);
   free(ref_tend_loc_t);
   free(ref_tend_loc_cld);
+
+  return 0;
 
 }
